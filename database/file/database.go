@@ -3,7 +3,6 @@ package file
 import (
 	"database/sql"
 
-	"github.com/sqldef/sqldef/v3"
 	"github.com/sqldef/sqldef/v3/database"
 )
 
@@ -13,44 +12,32 @@ type FileDatabase struct {
 	generatorConfig database.GeneratorConfig
 }
 
-func NewDatabase(file string) *FileDatabase {
-	return &FileDatabase{
-		file: file,
-	}
-}
+func NewDatabase(file string) *FileDatabase { _ = "STUB: not implemented"; return nil }
 
-func (f FileDatabase) ExportDDLs() (string, error) {
-	return sqldef.ReadFile(f.file)
-}
+func (f FileDatabase) ExportDDLs() (string, error) { _ = "STUB: not implemented"; return "", nil }
 
-func (f FileDatabase) DB() *sql.DB {
-	return nil
-}
+func (f FileDatabase) DB() *sql.DB { _ = "STUB: not implemented"; return nil }
 
-func (f FileDatabase) Close() error {
-	return nil
-}
+func (f FileDatabase) Close() error { _ = "STUB: not implemented"; return nil }
 
-func (f FileDatabase) GetDefaultSchema() string {
-	return ""
-}
+func (f FileDatabase) GetDefaultSchema() string { _ = "STUB: not implemented"; return "" }
 
 func (d *FileDatabase) SetGeneratorConfig(config database.GeneratorConfig) {
-	d.generatorConfig = config
+	_ = "STUB: not implemented"
+	return
 }
 
 func (d *FileDatabase) GetGeneratorConfig() database.GeneratorConfig {
-	return d.generatorConfig
+	_ = "STUB: not implemented"
+	return *new(database.GeneratorConfig)
 }
 
 func (d *FileDatabase) GetTransactionQueries() database.TransactionQueries {
-	return database.TransactionQueries{
-		Begin:    "BEGIN",
-		Commit:   "COMMIT",
-		Rollback: "ROLLBACK",
-	}
+	_ = "STUB: not implemented"
+	return *new(database.TransactionQueries)
 }
 
 func (d *FileDatabase) GetConfig() database.Config {
-	return database.Config{}
+	_ = "STUB: not implemented"
+	return *new(database.Config)
 }

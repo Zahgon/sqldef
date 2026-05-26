@@ -4,8 +4,6 @@ package testutil
 
 import (
 	"net"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -26,45 +24,13 @@ type DummyUnixSocket struct {
 //
 // Returns a DummyUnixSocket which must be closed by calling Close().
 func StartDummyUnixSocket(t *testing.T, dirPrefix, socketName string) *DummyUnixSocket {
-	t.Helper()
-
-	tmpDir, err := os.MkdirTemp("", dirPrefix)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	socketPath := filepath.Join(tmpDir, socketName)
-	listener, err := net.Listen("unix", socketPath)
-	if err != nil {
-		os.RemoveAll(tmpDir)
-		t.Fatal(err)
-	}
-
-	sock := &DummyUnixSocket{
-		Dir:      tmpDir,
-		Path:     socketPath,
-		listener: listener,
-	}
-
-	go sock.acceptLoop()
-
-	return sock
+	_ = "STUB: not implemented"
+	return nil
 }
 
-func (s *DummyUnixSocket) acceptLoop() {
-	for {
-		conn, err := s.listener.Accept()
-		if err != nil {
-			return
-		}
-		// Respond with garbage data to trigger a protocol error (not "connection refused")
-		conn.Write([]byte("dummy socket response\n"))
-		conn.Close()
-	}
-}
+func (s *DummyUnixSocket) acceptLoop() { _ = "STUB: not implemented"; return }
+
+// Respond with garbage data to trigger a protocol error (not "connection refused")
 
 // Close shuts down the socket and cleans up temporary files.
-func (s *DummyUnixSocket) Close() {
-	s.listener.Close()
-	os.RemoveAll(s.Dir)
-}
+func (s *DummyUnixSocket) Close() { _ = "STUB: not implemented"; return }

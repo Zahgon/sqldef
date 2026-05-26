@@ -2,13 +2,8 @@
 package database
 
 import (
-	"bytes"
 	"database/sql"
-	"log"
-	"os"
-	"strings"
 
-	"github.com/goccy/go-yaml"
 	"github.com/sqldef/sqldef/v3/parser"
 )
 
@@ -94,9 +89,7 @@ var NewIdent = parser.NewIdent
 //   - Keyword escaping is a SQL syntax requirement, not an identifier property
 //
 // Use this for identifiers from the database or auto-generated constraint names.
-func NewIdentWithQuoteDetected(name string) Ident {
-	return Ident{Name: name, Quoted: hasNonStandardChars(name)}
-}
+func NewIdentWithQuoteDetected(name string) Ident { _ = "STUB: not implemented"; return *new(Ident) }
 
 // NeedsQuoting returns true if an identifier needs to be quoted in SQL output.
 // This is the complete check for DDL generation, combining:
@@ -104,9 +97,7 @@ func NewIdentWithQuoteDetected(name string) Ident {
 //   - Reserved keywords
 //
 // Use this when generating SQL output to determine if quoting is required.
-func NeedsQuoting(name string) bool {
-	return hasNonStandardChars(name) || parser.IsKeyword(name)
-}
+func NeedsQuoting(name string) bool { _ = "STUB: not implemented"; return false }
 
 // hasNonStandardChars returns true if an identifier contains characters
 // that require quoting to preserve the identifier's form. This checks:
@@ -115,39 +106,18 @@ func NeedsQuoting(name string) bool {
 //   - Invalid first character (must be letter or underscore)
 //
 // This does NOT check for reserved keywords - use NeedsQuoting for that.
-func hasNonStandardChars(name string) bool {
-	if name == "" {
-		return false
-	}
-	// Check if it has uppercase letters
-	if strings.ToLower(name) != name {
-		return true
-	}
-	for i, r := range name {
-		if i == 0 {
-			// First character: must be letter or underscore
-			if !((r >= 'a' && r <= 'z') || r == '_') {
-				return true
-			}
-		} else {
-			// Remaining characters: letters, digits, underscores, or $ are allowed
-			if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '_' || r == '$') {
-				return true
-			}
-		}
-	}
-	return false
-}
+func hasNonStandardChars(name string) bool { _ = "STUB: not implemented"; return false }
+
+// Check if it has uppercase letters
+
+// First character: must be letter or underscore
+
+// Remaining characters: letters, digits, underscores, or $ are allowed
 
 // NewNormalizedIdent normalizes an Ident for comparison:
 //   - Quoted identifiers: preserve case, set Quoted based on whether name has uppercase
 //   - Unquoted identifiers: normalize to lowercase, set Quoted=false
-func NewNormalizedIdent(ident Ident) Ident {
-	if ident.Quoted {
-		return NewIdentWithQuoteDetected(ident.Name)
-	}
-	return Ident{Name: strings.ToLower(ident.Name), Quoted: false}
-}
+func NewNormalizedIdent(ident Ident) Ident { _ = "STUB: not implemented"; return *new(Ident) }
 
 // QualifiedName represents a schema-qualified table name with quote information.
 type QualifiedName struct {
@@ -156,19 +126,12 @@ type QualifiedName struct {
 }
 
 // IsEmpty returns true if the qualified name has no name set.
-func (q QualifiedName) IsEmpty() bool {
-	return q.Name.IsEmpty()
-}
+func (q QualifiedName) IsEmpty() bool { _ = "STUB: not implemented"; return false }
 
 // RawString returns the raw qualified name as "schema.name" or just "name" if no schema.
 // This is NOT escaped for SQL output and NOT normalized for comparison.
 // Use this for logging, debugging, or map keys.
-func (q QualifiedName) RawString() string {
-	if q.Schema.IsEmpty() {
-		return q.Name.Name
-	}
-	return q.Schema.Name + "." + q.Name.Name
-}
+func (q QualifiedName) RawString() string { _ = "STUB: not implemented"; return "" }
 
 // Abstraction layer for multiple kinds of databases
 type Database interface {
@@ -182,248 +145,57 @@ type Database interface {
 	GetConfig() Config
 }
 
-func isDryRun(d Database) bool {
-	_, isDryRun := d.(*DryRunDatabase)
-	return isDryRun
-}
+func isDryRun(d Database) bool { _ = "STUB: not implemented"; return false }
 
-func isSingleLineComment(s string) bool {
-	return strings.HasPrefix(s, "-- ") && !strings.Contains(strings.TrimSpace(s), "\n")
-}
+func isSingleLineComment(s string) bool { _ = "STUB: not implemented"; return false }
 
 func RunDDLs(d Database, ddls []string, beforeApply string, ddlSuffix string, logger Logger) error {
-	if isDryRun(d) {
-		logger.Println("-- dry run --")
-	} else {
-		logger.Println("-- Apply --")
-	}
-
-	ddlsInTx := []string{}
-	ddlsNotInTx := []string{}
-
-	if d.GetConfig().DisableDdlTransaction {
-		ddlsNotInTx = ddls
-	} else {
-		for _, ddl := range ddls {
-			if TransactionSupported(ddl) {
-				ddlsInTx = append(ddlsInTx, ddl)
-			} else {
-				ddlsNotInTx = append(ddlsNotInTx, ddl)
-			}
-		}
-	}
-
-	txQueries := d.GetTransactionQueries()
-
-	var transaction *sql.Tx
-	var err error
-
-	if len(ddlsInTx) > 0 || len(beforeApply) > 0 {
-		transaction, err = d.DB().Begin()
-		if err != nil {
-			return err
-		}
-
-		logger.Printf("%s;\n", txQueries.Begin)
-	}
-
-	if len(beforeApply) > 0 {
-		// beforeApply is executed in transaction
-		logger.Println(beforeApply)
-		if _, err := transaction.Exec(beforeApply); err != nil {
-			_ = transaction.Rollback()
-			logger.Printf("%s;\n", txQueries.Rollback)
-			return err
-		}
-	}
-
-	// DDLs in transaction
-	for _, ddl := range ddlsInTx {
-		logger.Printf("%s;\n", ddl)
-
-		if isSingleLineComment(ddl) {
-			// Skip commented DDLs (e.g., "-- Skipped: ...")
-			continue
-		}
-
-		logger.Print(ddlSuffix)
-		_, err = transaction.Exec(ddl)
-		if err != nil {
-			_ = transaction.Rollback()
-			logger.Printf("%s;\n", txQueries.Rollback)
-			return err
-		}
-	}
-
-	// Only commit if we started a transaction
-	if transaction != nil {
-		if err := transaction.Commit(); err != nil {
-			return err
-		}
-		logger.Printf("%s;\n", txQueries.Commit)
-	}
-
-	// DDLs not in transaction
-	for _, ddl := range ddlsNotInTx {
-		logger.Printf("%s;\n", ddl)
-		// Skip ddlSuffix and execution for commented DDLs (e.g., "-- Skipped: ...")
-		if !isSingleLineComment(ddl) {
-			logger.Print(ddlSuffix)
-			_, err = d.DB().Exec(ddl)
-			if err != nil {
-				return err
-			}
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func TransactionSupported(ddl string) bool {
-	ddlLower := strings.ToLower(ddl)
-	return !strings.Contains(ddlLower, "concurrently") && !strings.Contains(ddlLower, "async")
-}
+// beforeApply is executed in transaction
+
+// DDLs in transaction
+
+// Skip commented DDLs (e.g., "-- Skipped: ...")
+
+// Only commit if we started a transaction
+
+// DDLs not in transaction
+
+// Skip ddlSuffix and execution for commented DDLs (e.g., "-- Skipped: ...")
+
+func TransactionSupported(ddl string) bool { _ = "STUB: not implemented"; return false }
 
 func MergeGeneratorConfigs(configs []GeneratorConfig) GeneratorConfig {
-	var result GeneratorConfig
-	for _, config := range configs {
-		result = MergeGeneratorConfig(result, config)
-	}
-	return result
+	_ = "STUB: not implemented"
+	return *new(GeneratorConfig)
 }
 
 func ParseGeneratorConfigString(yamlString string, defaults GeneratorConfig) GeneratorConfig {
-	if yamlString == "" {
-		return defaults
-	}
-	return parseGeneratorConfigFromBytes([]byte(yamlString), defaults)
+	_ = "STUB: not implemented"
+	return *new(GeneratorConfig)
 }
 
 func ParseGeneratorConfig(configFile string, defaults GeneratorConfig) GeneratorConfig {
-	if configFile == "" {
-		return defaults
-	}
-
-	buf, err := os.ReadFile(configFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return parseGeneratorConfigFromBytes(buf, defaults)
+	_ = "STUB: not implemented"
+	return *new(GeneratorConfig)
 }
 
 // MergeGeneratorConfig merges two configs, with the second one taking precedence
 func MergeGeneratorConfig(base, override GeneratorConfig) GeneratorConfig {
-	result := base
+	_ = "STUB: not implemented"
 
 	// Override fields if they are set in the override config
-	if override.TargetTables != nil {
-		result.TargetTables = override.TargetTables
-	}
-	if override.SkipTables != nil {
-		result.SkipTables = override.SkipTables
-	}
-	if override.SkipViews != nil {
-		result.SkipViews = override.SkipViews
-	}
-	if override.TargetSchema != nil {
-		result.TargetSchema = override.TargetSchema
-	}
-	if override.Algorithm != "" {
-		result.Algorithm = override.Algorithm
-	}
-	if override.Lock != "" {
-		result.Lock = override.Lock
-	}
-	if override.DumpConcurrency != 0 {
-		result.DumpConcurrency = override.DumpConcurrency
-	}
-	if override.ManagedRoles != nil {
-		result.ManagedRoles = override.ManagedRoles
-	}
-	if override.EnableDrop {
-		result.EnableDrop = override.EnableDrop
-	}
-	if override.CreateIndexConcurrently {
-		result.CreateIndexConcurrently = override.CreateIndexConcurrently
-	}
-	if override.DisableDdlTransaction {
-		result.DisableDdlTransaction = override.DisableDdlTransaction
-	}
-	// LegacyIgnoreQuotes: override always takes precedence (set by first config with database-specific default)
-	result.LegacyIgnoreQuotes = override.LegacyIgnoreQuotes
-
-	return result
+	return *new(GeneratorConfig)
 }
+
+// LegacyIgnoreQuotes: override always takes precedence (set by first config with database-specific default)
 
 func parseGeneratorConfigFromBytes(buf []byte, defaults GeneratorConfig) GeneratorConfig {
-	var config struct {
-		TargetTables            string   `yaml:"target_tables"`
-		SkipTables              string   `yaml:"skip_tables"`
-		SkipViews               string   `yaml:"skip_views"`
-		TargetSchema            string   `yaml:"target_schema"`
-		Algorithm               string   `yaml:"algorithm"`
-		Lock                    string   `yaml:"lock"`
-		DumpConcurrency         int      `yaml:"dump_concurrency"`
-		ManagedRoles            []string `yaml:"managed_roles"`
-		EnableDrop              bool     `yaml:"enable_drop"`
-		CreateIndexConcurrently bool     `yaml:"create_index_concurrently"`
-		DisableDdlTransaction   bool     `yaml:"disable_ddl_transaction"`
-		LegacyIgnoreQuotes      *bool    `yaml:"legacy_ignore_quotes"`
-	}
-
-	dec := yaml.NewDecoder(bytes.NewReader(buf), yaml.DisallowUnknownField())
-	err := dec.Decode(&config)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var targetTables []string
-	if config.TargetTables != "" {
-		targetTables = strings.Split(strings.Trim(config.TargetTables, "\n"), "\n")
-	}
-
-	var skipTables []string
-	if config.SkipTables != "" {
-		skipTables = strings.Split(strings.Trim(config.SkipTables, "\n"), "\n")
-	}
-
-	var skipViews []string
-	if config.SkipViews != "" {
-		skipViews = strings.Split(strings.Trim(config.SkipViews, "\n"), "\n")
-	}
-
-	var targetSchema []string
-	if config.TargetSchema != "" {
-		targetSchema = strings.Split(strings.Trim(config.TargetSchema, "\n"), "\n")
-	}
-
-	var algorithm string
-	if config.Algorithm != "" {
-		algorithm = strings.Trim(config.Algorithm, "\n")
-	}
-
-	var lock string
-	if config.Lock != "" {
-		lock = strings.Trim(config.Lock, "\n")
-	}
-
-	// Use the provided default, override if explicitly set in config
-	legacyIgnoreQuotes := defaults.LegacyIgnoreQuotes
-	if config.LegacyIgnoreQuotes != nil {
-		legacyIgnoreQuotes = *config.LegacyIgnoreQuotes
-	}
-
-	return GeneratorConfig{
-		TargetTables:            targetTables,
-		SkipTables:              skipTables,
-		SkipViews:               skipViews,
-		TargetSchema:            targetSchema,
-		Algorithm:               algorithm,
-		Lock:                    lock,
-		DumpConcurrency:         config.DumpConcurrency,
-		ManagedRoles:            config.ManagedRoles,
-		EnableDrop:              config.EnableDrop,
-		CreateIndexConcurrently: config.CreateIndexConcurrently,
-		DisableDdlTransaction:   config.DisableDdlTransaction,
-		LegacyIgnoreQuotes:      legacyIgnoreQuotes,
-	}
+	_ = "STUB: not implemented"
+	return *new(GeneratorConfig)
 }
+
+// Use the provided default, override if explicitly set in config

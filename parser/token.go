@@ -17,11 +17,7 @@ limitations under the License.
 package parser
 
 import (
-	"errors"
-	"fmt"
 	"strings"
-	"unicode"
-	"unicode/utf8"
 )
 
 type ParserMode int
@@ -37,20 +33,11 @@ const (
 
 // The main parser function for sqldef.
 func ParseDDL(sql string, mode ParserMode) (Statement, error) {
-	tokenizer := NewTokenizer(sql, mode)
-	if yyParse(tokenizer) != 0 {
-		return nil, fmt.Errorf(
-			"found syntax error when parsing DDL \"%s\": %v", sql, tokenizer.LastError,
-		)
-	}
-	// yyParse returns 0 when error recovery rules are triggered, so check LastError
-	if tokenizer.LastError != nil {
-		return nil, fmt.Errorf(
-			"found syntax error when parsing DDL \"%s\": %v", sql, tokenizer.LastError,
-		)
-	}
-	return tokenizer.ParseTree, nil
+	_ = "STUB: not implemented"
+	return *new(Statement), nil
 }
+
+// yyParse returns 0 when error recovery rules are triggered, so check LastError
 
 // Tokenizer is the struct used to generate SQL
 // tokens for the parser.
@@ -75,13 +62,7 @@ type Tokenizer struct {
 }
 
 // NewTokenizer creates a new Tokenizer for a given SQL string.
-func NewTokenizer(sql string, mode ParserMode) *Tokenizer {
-	return &Tokenizer{
-		buf:     sql,
-		bufSize: len(sql),
-		mode:    mode,
-	}
-}
+func NewTokenizer(sql string, mode ParserMode) *Tokenizer { _ = "STUB: not implemented"; return nil }
 
 // keywords maps keyword strings to their token IDs.
 // Keywords marked as UNUSED are recognized but not actively used in the grammar.
@@ -577,10 +558,7 @@ var keywordStrings = map[int]string{}
 
 // IsKeyword returns true if the given string is a SQL keyword.
 // The check is case-insensitive.
-func IsKeyword(s string) bool {
-	_, ok := keywords[strings.ToLower(s)]
-	return ok
-}
+func IsKeyword(s string) bool { _ = "STUB: not implemented"; return false }
 
 var encodeRef = map[byte]byte{
 	'\x00': '0',
@@ -629,840 +607,222 @@ func init() {
 
 // Lex returns the next token form the Tokenizer.
 // This function is used by go yacc.
-func (tkn *Tokenizer) Lex(lval *yySymType) int {
-	typ, val := tkn.Scan()
-	for typ == COMMENT {
-		if tkn.AllowComments {
-			break
-		}
-		typ, val = tkn.Scan()
-	}
-	if typ == ID {
-		// For ID tokens, create an Ident with value and quoted flag
-		lval.ident = NewIdent(val, tkn.lastIdentifierQuoted)
-	} else {
-		// For other tokens, use the str field as before
-		lval.str = val
-	}
-	tkn.lastToken = val
-	return typ
-}
+func (tkn *Tokenizer) Lex(lval *yySymType) int { _ = "STUB: not implemented"; return 0 }
+
+// For ID tokens, create an Ident with value and quoted flag
+
+// For other tokens, use the str field as before
 
 func (tkn *Tokenizer) getLineInfo(position int) (lineNum int, lineContent string, columnNum int) {
-	lineNum = 1
-	lineStart := 0
-
-	position = min(position, len(tkn.buf))
-
-	for i := 0; i < position && i < len(tkn.buf); i++ {
-		if tkn.buf[i] == '\n' {
-			lineNum++
-			lineStart = i + 1
-		}
-	}
-
-	// Find the end of the current line
-	lineEnd := lineStart
-	for lineEnd < len(tkn.buf) && tkn.buf[lineEnd] != '\n' {
-		lineEnd++
-	}
-
-	// Extract the line content
-	if lineStart <= len(tkn.buf) && lineEnd <= len(tkn.buf) {
-		lineContent = tkn.buf[lineStart:lineEnd]
-	}
-
-	// Calculate column number (position within the line)
-	columnNum = position - lineStart + 1
-
-	return lineNum, lineContent, columnNum
+	_ = "STUB: not implemented"
+	return 0, "", 0
 }
+
+// Find the end of the current line
+
+// Extract the line content
+
+// Calculate column number (position within the line)
 
 // Error is called by go yacc if there's a parsing error.
-func (tkn *Tokenizer) Error(err string) {
-	var buf strings.Builder
+func (tkn *Tokenizer) Error(err string) { _ = "STUB: not implemented"; return }
 
-	lineNum, lineContent, columnNum := tkn.getLineInfo(tkn.Position)
+// Add a pointer to show the exact position
 
-	fmt.Fprintf(&buf, "%s at line %d, column %d", err, lineNum, columnNum)
-
-	if tkn.lastToken != "" {
-		fmt.Fprintf(&buf, " near '%s'", tkn.lastToken)
-	}
-
-	if lineContent != "" {
-		fmt.Fprintf(&buf, "\n  %s", lineContent)
-
-		// Add a pointer to show the exact position
-		if columnNum > 0 {
-			fmt.Fprintf(&buf, "\n  %s^", strings.Repeat(" ", columnNum-1))
-		}
-	}
-
-	tkn.LastError = errors.New(buf.String())
-
-	// Try and re-sync to the next statement
-	if tkn.lastChar != ';' {
-		tkn.skipStatement()
-	}
-}
+// Try and re-sync to the next statement
 
 // Scan scans the tokenizer for the next token and returns
 // the token type and an optional value.
-func (tkn *Tokenizer) Scan() (int, string) {
-	if tkn.specialComment != nil {
-		// Enter specialComment scan mode.
-		// for scanning such kind of comment: /*! MySQL-specific code */
-		specialComment := tkn.specialComment
-		tok, val := specialComment.Scan()
-		if tok != 0 {
-			// return the specialComment scan result as the result
-			return tok, val
-		}
-		// leave specialComment scan mode after all stream consumed.
-		tkn.specialComment = nil
-	}
-	if tkn.lastChar == 0 {
-		tkn.next()
-	}
+func (tkn *Tokenizer) Scan() (int, string) { _ = "STUB: not implemented"; return 0, "" }
 
-	tkn.skipBlank()
-	switch ch := tkn.lastChar; {
-	case isIdentifierFirstChar(ch):
-		tkn.next()
-		if ch == 'X' || ch == 'x' {
-			if tkn.lastChar == '\'' {
-				tkn.next()
-				return tkn.scanHex()
-			}
-		}
-		if ch == 'B' || ch == 'b' {
-			if tkn.lastChar == '\'' {
-				tkn.next()
-				return tkn.scanBitLiteral()
-			}
-		}
-		if ch == 'N' {
-			if tkn.lastChar == '\'' {
-				if tkn.mode == ParserModeMssql {
-					tkn.next()
-					return tkn.scanString('\'', UNICODE_STRING)
-				}
-			}
-		}
-		isDbSystemVariable := false
-		if ch == '@' && tkn.lastChar == '@' {
-			isDbSystemVariable = true
-		}
-		return tkn.scanIdentifier(ch, isDbSystemVariable)
-	case isAsciiDigit(ch):
-		return tkn.scanNumber(false)
-	case ch == ':':
-		return tkn.scanBindVar()
-	case ch == ';' && tkn.multi:
-		return 0, ""
-	default:
-		tkn.next()
-		switch ch {
-		case eofChar:
-			return 0, ""
-		case '=', ',', ';', '(', ')', '[', ']', '+', '*', '%', '^', '~':
-			if tkn.mode == ParserModeMssql && ch == '[' {
-				return tkn.scanLiteralIdentifier(']')
-			}
-			if tkn.mode == ParserModePostgres && ch == '~' {
-				// Check for ~~ (LIKE) and ~~* (ILIKE) pattern operators
-				if tkn.lastChar == '~' {
-					tkn.next()
-					if tkn.lastChar == '*' {
-						tkn.next()
-						return PATTERN_ILIKE, ""
-					}
-					return PATTERN_LIKE, ""
-				}
-				// Check for ~* (case-insensitive regex) or ~ (regex)
-				if tkn.lastChar == '*' {
-					tkn.next()
-					return POSIX_REGEX_CI, ""
-				}
-				return POSIX_REGEX, ""
-			}
-			return int(ch), ""
-		case '&':
-			if tkn.lastChar == '&' {
-				tkn.next()
-				return AND, ""
-			}
-			return int(ch), ""
-		case '|':
-			if tkn.lastChar == '|' {
-				tkn.next()
-				return OR, ""
-			}
-			return int(ch), ""
-		case '?':
-			tkn.posVarIndex++
-			return VALUE_ARG, fmt.Sprintf(":v%d", tkn.posVarIndex)
-		case '.':
-			if isAsciiDigit(tkn.lastChar) {
-				return tkn.scanNumber(true)
-			}
-			return int(ch), ""
-		case '/':
-			switch tkn.lastChar {
-			case '/':
-				tkn.next()
-				return tkn.scanCommentType1("//")
-			case '*':
-				tkn.next()
-				switch tkn.lastChar {
-				case '!':
-					return tkn.scanCommentType2()
-				default:
-					return tkn.scanCommentType2OrTiDBComment()
-				}
-			default:
-				return int(ch), ""
-			}
-		case '#':
-			return tkn.scanCommentType1("#")
-		case '-':
-			switch tkn.lastChar {
-			case '-':
-				tkn.next()
-				return tkn.scanCommentType1("--")
-			case '>':
-				tkn.next()
-				if tkn.lastChar == '>' {
-					tkn.next()
-					return JSON_UNQUOTE_EXTRACT_OP, ""
-				}
-				return JSON_EXTRACT_OP, ""
-			}
-			return int(ch), ""
-		case '<':
-			switch tkn.lastChar {
-			case '>':
-				tkn.next()
-				return NE, ""
-			case '<':
-				tkn.next()
-				return SHIFT_LEFT, ""
-			case '=':
-				tkn.next()
-				switch tkn.lastChar {
-				case '>':
-					tkn.next()
-					if tkn.mode == ParserModePostgres {
-						// PostgreSQL user-defined operator starting with '<='
-						// e.g., pgvector cosine distance: <=>
-						return CUSTOM_OP, "<=>"
-					}
-					return NULL_SAFE_EQUAL, ""
-				default:
-					return LE, ""
-				}
-			default:
-				if tkn.mode == ParserModePostgres && isOperatorChar(tkn.lastChar) {
-					// PostgreSQL user-defined operator starting with '<'
-					// e.g., pgvector: <->, <#>, <+>
-					return tkn.scanCustomOp('<')
-				}
-				return int(ch), ""
-			}
-		case '>':
-			switch tkn.lastChar {
-			case '=':
-				tkn.next()
-				return GE, ""
-			case '>':
-				tkn.next()
-				return SHIFT_RIGHT, ""
-			default:
-				return int(ch), ""
-			}
-		case '!':
-			if tkn.mode == ParserModePostgres {
-				if tkn.lastChar == '~' {
-					tkn.next()
-					// Check for !~~* (NOT ILIKE) and !~~ (NOT LIKE)
-					if tkn.lastChar == '~' {
-						tkn.next()
-						if tkn.lastChar == '*' {
-							tkn.next()
-							return PATTERN_NOT_ILIKE, ""
-						}
-						return PATTERN_NOT_LIKE, ""
-					}
-					// Check for !~* (NOT case-insensitive regex) or !~ (NOT regex)
-					if tkn.lastChar == '*' {
-						tkn.next()
-						return POSIX_NOT_REGEX_CI, ""
-					}
-					return POSIX_NOT_REGEX, ""
-				}
-			}
-			if tkn.lastChar == '=' {
-				tkn.next()
-				return NE, ""
-			}
-			return int(ch), ""
-		case '\'':
-			return tkn.scanString(ch, STRING)
-		case '"':
-			if tkn.mode != ParserModeMysql {
-				return tkn.scanLiteralIdentifier('"')
-			} else {
-				return tkn.scanString(ch, STRING)
-			}
-		case '$':
-			// PostgreSQL dollar-quoted strings: $$...$$ or $tag$...$tag$
-			if tkn.mode == ParserModePostgres {
-				return tkn.scanDollarQuotedString()
-			}
-			return LEX_ERROR, string(ch)
-		default:
-			if tkn.mode != ParserModePostgres && ch == '`' {
-				return tkn.scanLiteralIdentifier('`')
-			}
-			return LEX_ERROR, string(ch)
-		}
-	}
-}
+// Enter specialComment scan mode.
+// for scanning such kind of comment: /*! MySQL-specific code */
+
+// return the specialComment scan result as the result
+
+// leave specialComment scan mode after all stream consumed.
+
+// Check for ~~ (LIKE) and ~~* (ILIKE) pattern operators
+
+// Check for ~* (case-insensitive regex) or ~ (regex)
+
+// PostgreSQL user-defined operator starting with '<='
+// e.g., pgvector cosine distance: <=>
+
+// PostgreSQL user-defined operator starting with '<'
+// e.g., pgvector: <->, <#>, <+>
+
+// Check for !~~* (NOT ILIKE) and !~~ (NOT LIKE)
+
+// Check for !~* (NOT case-insensitive regex) or !~ (NOT regex)
+
+// PostgreSQL dollar-quoted strings: $$...$$ or $tag$...$tag$
 
 // skipStatement scans until the EOF, or end of statement is encountered.
-func (tkn *Tokenizer) skipStatement() {
-	ch := tkn.lastChar
-	for ch != ';' && ch != eofChar {
-		tkn.next()
-		ch = tkn.lastChar
-	}
-}
+func (tkn *Tokenizer) skipStatement() { _ = "STUB: not implemented"; return }
 
-func (tkn *Tokenizer) skipBlank() {
-	ch := tkn.lastChar
-	for ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t' {
-		tkn.next()
-		ch = tkn.lastChar
-	}
-}
+func (tkn *Tokenizer) skipBlank() { _ = "STUB: not implemented"; return }
 
 func (tkn *Tokenizer) scanIdentifier(firstChar rune, isDbSystemVariable bool) (int, string) {
-	var buffer strings.Builder
-	buffer.WriteRune(firstChar)
-	for isIdentifierFirstChar(tkn.lastChar) || isAsciiDigit(tkn.lastChar) || (isDbSystemVariable && isIdentifierMetaChar(tkn.lastChar)) {
-		buffer.WriteRune(tkn.lastChar)
-		tkn.next()
-	}
-	loweredStr := strings.ToLower(buffer.String())
-	if keywordID, found := keywords[loweredStr]; found {
-		// Context-aware handling for "with" keyword
-		// Only peek if we're not already in a peek operation (prevents infinite recursion)
-		if keywordID == WITH && !tkn.peeking {
-			nextID, _ := tkn.peekToken()
-
-			// If next token is DATA or NO (for "WITH NO DATA"), this is a data option
-			if nextID == DATA || nextID == NO {
-				return WITH_DATA_OPTION, loweredStr
-			}
-		}
-
-		// PostgreSQL treats KEY as a non-reserved keyword usable as an unquoted
-		// column name. Surface a distinct PG_KEY token so the grammar can accept
-		// `key text NOT NULL` without colliding with MySQL's inline `KEY idx_name (col)`.
-		if keywordID == KEY && tkn.mode == ParserModePostgres {
-			return PG_KEY, loweredStr
-		}
-
-		// keyword is case-insensitive
-		return keywordID, loweredStr
-	}
-
-	// dual must always be case-insensitive
-	if loweredStr == "dual" {
-		tkn.lastIdentifierQuoted = false
-		return ID, loweredStr
-	}
-
-	// others are case-sensitive (unquoted identifiers)
-	tkn.lastIdentifierQuoted = false
-	return ID, buffer.String()
+	_ = "STUB: not implemented"
+	return 0, ""
 }
 
-func (tkn *Tokenizer) scanHex() (int, string) {
-	var buffer strings.Builder
-	tkn.scanMantissa(16, &buffer)
-	if tkn.lastChar != '\'' {
-		return LEX_ERROR, buffer.String()
-	}
-	tkn.next()
-	if buffer.Len()%2 != 0 {
-		return LEX_ERROR, buffer.String()
-	}
-	return HEX, buffer.String()
-}
+// Context-aware handling for "with" keyword
+// Only peek if we're not already in a peek operation (prevents infinite recursion)
 
-func (tkn *Tokenizer) scanBitLiteral() (int, string) {
-	var buffer strings.Builder
-	tkn.scanMantissa(2, &buffer)
-	if tkn.lastChar != '\'' {
-		return LEX_ERROR, buffer.String()
-	}
-	tkn.next()
-	return BIT_LITERAL, buffer.String()
-}
+// If next token is DATA or NO (for "WITH NO DATA"), this is a data option
+
+// PostgreSQL treats KEY as a non-reserved keyword usable as an unquoted
+// column name. Surface a distinct PG_KEY token so the grammar can accept
+// `key text NOT NULL` without colliding with MySQL's inline `KEY idx_name (col)`.
+
+// keyword is case-insensitive
+
+// dual must always be case-insensitive
+
+// others are case-sensitive (unquoted identifiers)
+
+func (tkn *Tokenizer) scanHex() (int, string) { _ = "STUB: not implemented"; return 0, "" }
+
+func (tkn *Tokenizer) scanBitLiteral() (int, string) { _ = "STUB: not implemented"; return 0, "" }
 
 func (tkn *Tokenizer) scanLiteralIdentifier(sepChar rune) (int, string) {
-	var buffer strings.Builder
-	backTickSeen := false
-	for {
-		if backTickSeen {
-			if tkn.lastChar != sepChar {
-				break
-			}
-			backTickSeen = false
-			buffer.WriteRune(sepChar)
-			tkn.next()
-			continue
-		}
-		// The previous char was not a backtick.
-		switch tkn.lastChar {
-		case sepChar:
-			backTickSeen = true
-		case eofChar:
-			// Premature EOF.
-			return LEX_ERROR, buffer.String()
-		default:
-			buffer.WriteRune(tkn.lastChar)
-		}
-		tkn.next()
-	}
-	if buffer.Len() == 0 {
-		return LEX_ERROR, buffer.String()
-	}
-	// Literal identifiers are quoted
-	tkn.lastIdentifierQuoted = true
-	return ID, buffer.String()
+	_ = "STUB: not implemented"
+	return 0, ""
 }
 
-func (tkn *Tokenizer) scanBindVar() (int, string) {
-	var buffer strings.Builder
-	buffer.WriteRune(tkn.lastChar)
-	token := VALUE_ARG
-	tkn.next()
-	if tkn.lastChar == ':' {
-		if tkn.mode == ParserModePostgres {
-			buffer.WriteRune(tkn.lastChar)
-			tkn.next()
-			return TYPECAST, buffer.String()
-		}
-		token = LIST_ARG
-		buffer.WriteRune(tkn.lastChar)
-		tkn.next()
-	}
-	if !isIdentifierFirstChar(tkn.lastChar) {
-		return LEX_ERROR, buffer.String()
-	}
-	for isIdentifierFirstChar(tkn.lastChar) || isAsciiDigit(tkn.lastChar) || tkn.lastChar == '.' {
-		buffer.WriteRune(tkn.lastChar)
-		tkn.next()
-	}
-	return token, buffer.String()
-}
+// The previous char was not a backtick.
+
+// Premature EOF.
+
+// Literal identifiers are quoted
+
+func (tkn *Tokenizer) scanBindVar() (int, string) { _ = "STUB: not implemented"; return 0, "" }
 
 func (tkn *Tokenizer) scanMantissa(base int, buffer *strings.Builder) {
-	for digitVal(tkn.lastChar) < base {
-		tkn.consumeNext(buffer)
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
 func (tkn *Tokenizer) scanNumber(seenDecimalPoint bool) (int, string) {
-	token := INTEGRAL
-	var buffer strings.Builder
-	if seenDecimalPoint {
-		token = FLOAT
-		buffer.WriteByte('.')
-		tkn.scanMantissa(10, &buffer)
-		goto exponent
-	}
-
-	// 0x construct.
-	if tkn.lastChar == '0' {
-		tkn.consumeNext(&buffer)
-		if tkn.lastChar == 'x' || tkn.lastChar == 'X' {
-			token = HEXNUM
-			tkn.consumeNext(&buffer)
-			tkn.scanMantissa(16, &buffer)
-			goto exit
-		}
-	}
-
-	tkn.scanMantissa(10, &buffer)
-
-	if tkn.lastChar == '.' {
-		token = FLOAT
-		tkn.consumeNext(&buffer)
-		tkn.scanMantissa(10, &buffer)
-	}
-
-exponent:
-	if tkn.lastChar == 'e' || tkn.lastChar == 'E' {
-		token = FLOAT
-		tkn.consumeNext(&buffer)
-		if tkn.lastChar == '+' || tkn.lastChar == '-' {
-			tkn.consumeNext(&buffer)
-		}
-		tkn.scanMantissa(10, &buffer)
-	}
-
-exit:
-	// A letter cannot immediately follow a number.
-	if isIdentifierFirstChar(tkn.lastChar) {
-		return LEX_ERROR, buffer.String()
-	}
-
-	return token, buffer.String()
+	_ = "STUB: not implemented"
+	return 0, ""
 }
+
+// 0x construct.
+
+// A letter cannot immediately follow a number.
 
 func (tkn *Tokenizer) scanString(delim rune, typ int) (int, string) {
-	var buffer strings.Builder
-	for {
-		ch := tkn.lastChar
-		if ch == eofChar {
-			// Unterminated string.
-			return LEX_ERROR, buffer.String()
-		}
-
-		if ch != delim && ch != '\\' {
-			buffer.WriteRune(ch)
-
-			start := tkn.bufPos
-			delimByte := byte(delim)
-			for ; tkn.bufPos < tkn.bufSize; tkn.bufPos++ {
-				b := tkn.buf[tkn.bufPos]
-				if b == delimByte || b == '\\' {
-					break
-				}
-			}
-
-			buffer.WriteString(tkn.buf[start:tkn.bufPos])
-			tkn.Position += (tkn.bufPos - start)
-
-			if tkn.bufPos >= tkn.bufSize {
-				// Reached the end of the buffer without finding a delim or
-				// escape character.
-				tkn.next()
-				continue
-			}
-
-			tkn.next()
-			continue
-		}
-		tkn.next()
-
-		if ch == '\\' {
-			if tkn.lastChar == eofChar {
-				// String terminates mid escape character.
-				return LEX_ERROR, buffer.String()
-			}
-			if decodedChar := sqlDecodeMap[byte(tkn.lastChar)]; decodedChar == dontEscape {
-				ch = tkn.lastChar
-			} else {
-				ch = rune(decodedChar)
-			}
-
-		} else if ch == delim && tkn.lastChar != delim {
-			// Correctly terminated string, which is not a double delim.
-			break
-		}
-
-		buffer.WriteRune(ch)
-		tkn.next()
-	}
-
-	return typ, buffer.String()
+	_ = "STUB: not implemented"
+	return 0, ""
 }
+
+// Unterminated string.
+
+// Reached the end of the buffer without finding a delim or
+// escape character.
+
+// String terminates mid escape character.
+
+// Correctly terminated string, which is not a double delim.
 
 // scanDollarQuotedString scans a PostgreSQL dollar-quoted string.
 // Supports both $$...$$ and $tag$...$tag$ styles.
 func (tkn *Tokenizer) scanDollarQuotedString() (int, string) {
-	var buffer strings.Builder
+	_ = "STUB: not implemented"
+	return 0,
 
-	// Build the opening delimiter (already consumed the first $)
-	var delimiter strings.Builder
-	delimiter.WriteByte('$')
-
-	// Check if it's $$ or $tag$
-	if tkn.lastChar == '$' {
-		// Simple $$ delimiter
-		delimiter.WriteByte('$')
-		tkn.next()
-	} else if isIdentifierFirstChar(tkn.lastChar) || isAsciiDigit(tkn.lastChar) {
-		// Tagged $tag$ delimiter
-		for isIdentifierFirstChar(tkn.lastChar) || isAsciiDigit(tkn.lastChar) {
-			delimiter.WriteRune(tkn.lastChar)
-			tkn.next()
-		}
-		if tkn.lastChar != '$' {
-			return LEX_ERROR, delimiter.String()
-		}
-		delimiter.WriteByte('$')
-		tkn.next()
-	} else {
-		return LEX_ERROR, "$"
-	}
-
-	delimStr := delimiter.String()
-
-	// Scan until we find the closing delimiter
-	for {
-		if tkn.lastChar == eofChar {
-			return LEX_ERROR, buffer.String()
-		}
-
-		if tkn.lastChar == '$' {
-			// Check if this is the start of the closing delimiter
-			savedPos := tkn.bufPos
-			savedChar := tkn.lastChar
-			savedPosition := tkn.Position
-
-			var potentialDelim strings.Builder
-			potentialDelim.WriteByte('$')
-			tkn.next()
-
-			for isIdentifierFirstChar(tkn.lastChar) || isAsciiDigit(tkn.lastChar) {
-				potentialDelim.WriteRune(tkn.lastChar)
-				tkn.next()
-			}
-
-			if tkn.lastChar == '$' {
-				potentialDelim.WriteByte('$')
-				tkn.next()
-
-				if potentialDelim.String() == delimStr {
-					// Found the closing delimiter
-					return STRING, buffer.String()
-				}
-			}
-
-			// Not the closing delimiter, restore and include in content
-			buffer.WriteString(potentialDelim.String()[:potentialDelim.Len()-1])
-			tkn.bufPos = savedPos
-			tkn.lastChar = savedChar
-			tkn.Position = savedPosition
-			buffer.WriteRune(tkn.lastChar)
-			tkn.next()
-		} else {
-			buffer.WriteRune(tkn.lastChar)
-			tkn.next()
-		}
-	}
+		// Build the opening delimiter (already consumed the first $)
+		""
 }
+
+// Check if it's $$ or $tag$
+
+// Simple $$ delimiter
+
+// Tagged $tag$ delimiter
+
+// Scan until we find the closing delimiter
+
+// Check if this is the start of the closing delimiter
+
+// Found the closing delimiter
+
+// Not the closing delimiter, restore and include in content
 
 func (tkn *Tokenizer) scanCommentType1(prefix string) (int, string) {
-	var buffer strings.Builder
-	buffer.WriteString(prefix)
-	for tkn.lastChar != eofChar {
-		if tkn.lastChar == '\n' {
-			tkn.consumeNext(&buffer)
-			break
-		}
-		tkn.consumeNext(&buffer)
-	}
-	return COMMENT, buffer.String()
+	_ = "STUB: not implemented"
+	return 0, ""
 }
 
-func (tkn *Tokenizer) scanCommentType2() (int, string) {
-	var buffer strings.Builder
-	buffer.WriteString("/*!")
-	tkn.next()
-	for {
-		if tkn.lastChar == '*' {
-			tkn.consumeNext(&buffer)
-			if tkn.lastChar == '/' {
-				tkn.consumeNext(&buffer)
-				break
-			}
-			continue
-		}
-		if tkn.lastChar == eofChar {
-			return LEX_ERROR, buffer.String()
-		}
-		tkn.consumeNext(&buffer)
-	}
-	_, sql := extractMysqlComment(buffer.String())
-	tkn.specialComment = NewTokenizer(sql, tkn.mode)
-	return tkn.Scan()
-}
+func (tkn *Tokenizer) scanCommentType2() (int, string) { _ = "STUB: not implemented"; return 0, "" }
 
 // scanCommentType2OrTiDBComment reads a block comment and checks if it's a
 // TiDB-specific comment like /*T![auto_rand] AUTO_RANDOM(5) */.
 // If so, the inner SQL is expanded into the token stream via specialComment.
 func (tkn *Tokenizer) scanCommentType2OrTiDBComment() (int, string) {
-	var buffer strings.Builder
-	buffer.WriteString("/*")
-	for {
-		if tkn.lastChar == '*' {
-			tkn.consumeNext(&buffer)
-			if tkn.lastChar == '/' {
-				tkn.consumeNext(&buffer)
-				break
-			}
-			continue
-		}
-		if tkn.lastChar == eofChar {
-			return LEX_ERROR, buffer.String()
-		}
-		tkn.consumeNext(&buffer)
-	}
-	comment := buffer.String()
-	if innerSQL, ok := extractTiDBComment(comment); ok {
-		tkn.specialComment = NewTokenizer(innerSQL, tkn.mode)
-		return tkn.Scan()
-	}
-
-	return COMMENT, comment
+	_ = "STUB: not implemented"
+	return 0, ""
 }
 
 // extractTiDBComment extracts the SQL from a TiDB-specific comment.
 // Two formats are supported:
 //   - /*T![feature_name] SQL */ — feature-gated (e.g. auto_rand, clustered_index)
 //   - /*T! SQL */               — ungated (e.g. SHARD_ROW_ID_BITS, PRE_SPLIT_REGIONS)
-func extractTiDBComment(comment string) (string, bool) {
-	inner := comment[2 : len(comment)-2] // strip /* and */
-	if !strings.HasPrefix(inner, "T!") {
-		return "", false
-	}
+func extractTiDBComment(comment string) (string, bool) { _ = "STUB: not implemented"; return "", false }
 
-	// Ungated form: /*T! SQL */
-	if !strings.HasPrefix(inner, "T![") {
-		sql := strings.TrimSpace(inner[2:])
-		if sql == "" {
-			return "", false
-		}
-		return sql, true
-	}
+// strip /* and */
 
-	// Feature-gated form: /*T![feature_name] SQL */
-	closeBracket := strings.Index(inner, "]")
-	if closeBracket == -1 {
-		return "", false
-	}
-	feature := inner[3:closeBracket]
-	switch feature {
-	case "auto_rand", "auto_id_cache":
-		// Supported features: expand the inner SQL into the token stream
-	default:
-		// Unsupported features (e.g. clustered_index): ignore
-		return "", false
-	}
-	sql := strings.TrimSpace(inner[closeBracket+1:])
-	return sql, true
-}
+// Ungated form: /*T! SQL */
 
-func (tkn *Tokenizer) consumeNext(buffer *strings.Builder) {
-	if tkn.lastChar == eofChar {
-		// This should never happen.
-		panic("unexpected EOF")
-	}
-	buffer.WriteRune(tkn.lastChar)
-	tkn.next()
-}
+// Feature-gated form: /*T![feature_name] SQL */
 
-func (tkn *Tokenizer) next() {
-	if tkn.bufPos >= tkn.bufSize {
-		if tkn.lastChar != eofChar {
-			tkn.Position++
-			tkn.lastChar = eofChar
-		}
-	} else {
-		r, size := utf8.DecodeRuneInString(tkn.buf[tkn.bufPos:])
-		tkn.Position += size
-		tkn.lastChar = r
-		tkn.bufPos += size
-	}
-}
+// Supported features: expand the inner SQL into the token stream
+
+// Unsupported features (e.g. clustered_index): ignore
+
+func (tkn *Tokenizer) consumeNext(buffer *strings.Builder) { _ = "STUB: not implemented"; return }
+
+// This should never happen.
+
+func (tkn *Tokenizer) next() { _ = "STUB: not implemented"; return }
 
 // peekToken peeks ahead to determine the next token
 // without consuming any characters. This is used for context-aware tokenization.
 func (tkn *Tokenizer) peekToken() (int, string) {
+	_ = "STUB: not implemented"
 	// Save current state and restore on exit
-	savedLastChar := tkn.lastChar
-	savedPosition := tkn.Position
-	savedBufPos := tkn.bufPos
-	savedPeeking := tkn.peeking
-
-	defer func() {
-		tkn.peeking = savedPeeking
-		tkn.lastChar = savedLastChar
-		tkn.Position = savedPosition
-		tkn.bufPos = savedBufPos
-	}()
-
-	// Set peeking flag to prevent infinite recursion
-	tkn.peeking = true
-	return tkn.Scan()
+	return 0, ""
 }
+
+// Set peeking flag to prevent infinite recursion
 
 // extractMysqlComment extracts the version and SQL from a comment-only query
 // such as /*!50708 sql here */
 func extractMysqlComment(sql string) (version string, innerSQL string) {
-	sql = sql[3 : len(sql)-2]
-
-	digitCount := 0
-	endOfVersionIndex := strings.IndexFunc(sql, func(c rune) bool {
-		digitCount++
-		return !isAsciiDigit(c) || digitCount == 6
-	})
-	version = sql[0:endOfVersionIndex]
-	innerSQL = strings.TrimFunc(sql[endOfVersionIndex:], unicode.IsSpace)
-
-	return version, innerSQL
+	_ = "STUB: not implemented"
+	return "", ""
 }
 
-func isIdentifierFirstChar(ch rune) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '@'
-}
+func isIdentifierFirstChar(ch rune) bool { _ = "STUB: not implemented"; return false }
 
-func isIdentifierMetaChar(ch rune) bool {
-	return ch == '.' || ch == '\'' || ch == '"' || ch == '`'
-}
+func isIdentifierMetaChar(ch rune) bool { _ = "STUB: not implemented"; return false }
 
-func isAsciiDigit(ch rune) bool {
-	return '0' <= ch && ch <= '9'
-}
+func isAsciiDigit(ch rune) bool { _ = "STUB: not implemented"; return false }
 
-func digitVal(ch rune) int {
-	switch {
-	case '0' <= ch && ch <= '9':
-		return int(ch) - '0'
-	case 'a' <= ch && ch <= 'f':
-		return int(ch) - 'a' + 10
-	case 'A' <= ch && ch <= 'F':
-		return int(ch) - 'A' + 10
-	}
-	return 16 // larger than any legal digit val
-}
+func digitVal(ch rune) int { _ = "STUB: not implemented"; return 0 }
+
+// larger than any legal digit val
 
 // isOperatorChar returns true if ch is a valid PostgreSQL operator character.
 // PostgreSQL allows: + - * / < > = ~ ! @ # % ^ & | ` ?
-func isOperatorChar(ch rune) bool {
-	switch ch {
-	case '+', '-', '*', '/', '<', '>', '=', '~', '!', '@', '#', '%', '^', '&', '|', '`', '?':
-		return true
-	}
-	return false
-}
+func isOperatorChar(ch rune) bool { _ = "STUB: not implemented"; return false }
 
 // isSpecialOperatorChar returns true if ch is a "special" operator character.
 // Multi-char operators ending in + or - must contain at least one of these.
-func isSpecialOperatorChar(ch rune) bool {
-	switch ch {
-	case '~', '!', '@', '#', '%', '^', '&', '|', '`', '?':
-		return true
-	}
-	return false
-}
+func isSpecialOperatorChar(ch rune) bool { _ = "STUB: not implemented"; return false }
 
 // scanCustomOp scans a PostgreSQL user-defined operator starting with the given character.
 // Called after the first character has been consumed and we've confirmed the next char is a valid operator char.
@@ -1471,41 +831,15 @@ func isSpecialOperatorChar(ch rune) bool {
 // - Cannot contain -- or /* (comment sequences)
 // - Multi-char operators ending in + or - must contain at least one of: ~ ! @ # % ^ & | ` ?
 func (tkn *Tokenizer) scanCustomOp(firstChar rune) (int, string) {
-	var buffer strings.Builder
-	buffer.WriteRune(firstChar)
-
-	hasSpecialChar := isSpecialOperatorChar(firstChar)
-	prevChar := firstChar
-
-	// Consume operator characters
-	for isOperatorChar(tkn.lastChar) {
-		ch := tkn.lastChar
-
-		// Check for prohibited comment sequences: -- and /*
-		if (prevChar == '-' && ch == '-') || (prevChar == '/' && ch == '*') {
-			// Put back this character and return what we have so far (minus the prev char)
-			// This is tricky - for now, return a lex error for invalid operators
-			return LEX_ERROR, buffer.String()
-		}
-
-		if isSpecialOperatorChar(ch) {
-			hasSpecialChar = true
-		}
-
-		buffer.WriteRune(ch)
-		prevChar = ch
-		tkn.next()
-	}
-
-	op := buffer.String()
-
-	// Multi-char operators ending in + or - must contain a special char
-	if len(op) > 1 {
-		lastChar := op[len(op)-1]
-		if (lastChar == '+' || lastChar == '-') && !hasSpecialChar {
-			return LEX_ERROR, op
-		}
-	}
-
-	return CUSTOM_OP, op
+	_ = "STUB: not implemented"
+	return 0, ""
 }
+
+// Consume operator characters
+
+// Check for prohibited comment sequences: -- and /*
+
+// Put back this character and return what we have so far (minus the prev char)
+// This is tricky - for now, return a lex error for invalid operators
+
+// Multi-char operators ending in + or - must contain a special char

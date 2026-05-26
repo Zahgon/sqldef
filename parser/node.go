@@ -17,8 +17,6 @@ limitations under the License.
 package parser
 
 import (
-	"fmt"
-	"sort"
 	"strings"
 )
 
@@ -34,52 +32,12 @@ type nodeBuffer struct {
 }
 
 // Printf mimics fmt.Fprintf(buf, ...), but limited to %s for string and %v for Node.
-func (buf *nodeBuffer) Printf(format string, values ...any) {
-	end := len(format)
-	fieldnum := 0
-	for i := 0; i < end; {
-		lasti := i
-		for i < end && format[i] != '%' {
-			i++
-		}
-		if i > lasti {
-			buf.WriteString(format[lasti:i])
-		}
-		if i >= end {
-			break
-		}
-		i++ // '%'
-		switch format[i] {
-		case 's':
-			switch v := values[fieldnum].(type) {
-			case []byte:
-				buf.Write(v)
-			case string:
-				buf.WriteString(v)
-			default:
-				panic(fmt.Sprintf("unexpected string type %T", v))
-			}
-		case 'v':
-			node := values[fieldnum].(SQLNode)
-			node.Format(buf)
-		default:
-			panic(fmt.Sprintf("unexpected format: %c", format[i]))
-		}
-		fieldnum++
-		i++
-	}
-}
+func (buf *nodeBuffer) Printf(format string, values ...any) { _ = "STUB: not implemented"; return }
+
+// '%'
 
 // String returns a string representation of an SQLNode.
-func String(node SQLNode) string {
-	if node == nil {
-		return "<nil>"
-	}
-
-	var buf nodeBuffer
-	node.Format(&buf)
-	return buf.String()
-}
+func String(node SQLNode) string { _ = "STUB: not implemented"; return "" }
 
 // Statement represents a statement.
 type Statement interface {
@@ -87,38 +45,46 @@ type Statement interface {
 	SQLNode
 }
 
-func (*Union) iStatement()           {}
-func (*Select) iStatement()          {}
-func (*Stream) iStatement()          {}
-func (*Insert) iStatement()          {}
-func (*Update) iStatement()          {}
-func (*Delete) iStatement()          {}
-func (*Set) iStatement()             {}
-func (*Declare) iStatement()         {}
-func (*Cursor) iStatement()          {}
-func (*BeginEnd) iStatement()        {}
-func (*While) iStatement()           {}
-func (*If) iStatement()              {}
-func (*DDL) iStatement()             {}
-func (*Show) iStatement()            {}
-func (*Use) iStatement()             {}
-func (*Begin) iStatement()           {}
-func (*Commit) iStatement()          {}
-func (*Rollback) iStatement()        {}
-func (*OtherRead) iStatement()       {}
-func (*OtherAdmin) iStatement()      {}
-func (*SetBoolOption) iStatement()   {}
-func (*MultiStatement) iStatement()  {}
-func (*Exec) iStatement()            {}
-func (*Return) iStatement()          {}
-func (*TriggerFuncExec) iStatement() {}
+func (*Union) iStatement()          { _ = "STUB: not implemented"; return }
+func (*Select) iStatement()         { _ = "STUB: not implemented"; return }
+func (*Stream) iStatement()         { _ = "STUB: not implemented"; return }
+func (*Insert) iStatement()         { _ = "STUB: not implemented"; return }
+func (*Update) iStatement()         { _ = "STUB: not implemented"; return }
+func (*Delete) iStatement()         { _ = "STUB: not implemented"; return }
+func (*Set) iStatement()            { _ = "STUB: not implemented"; return }
+func (*Declare) iStatement()        { _ = "STUB: not implemented"; return }
+func (*Cursor) iStatement()         { _ = "STUB: not implemented"; return }
+func (*BeginEnd) iStatement()       { _ = "STUB: not implemented"; return }
+func (*While) iStatement()          { _ = "STUB: not implemented"; return }
+func (*If) iStatement()             { _ = "STUB: not implemented"; return }
+func (*DDL) iStatement()            { _ = "STUB: not implemented"; return }
+func (*Show) iStatement()           { _ = "STUB: not implemented"; return }
+func (*Use) iStatement()            { _ = "STUB: not implemented"; return }
+func (*Begin) iStatement()          { _ = "STUB: not implemented"; return }
+func (*Commit) iStatement()         { _ = "STUB: not implemented"; return }
+func (*Rollback) iStatement()       { _ = "STUB: not implemented"; return }
+func (*OtherRead) iStatement()      { _ = "STUB: not implemented"; return }
+func (*OtherAdmin) iStatement()     { _ = "STUB: not implemented"; return }
+func (*SetBoolOption) iStatement()  { _ = "STUB: not implemented"; return }
+func (*MultiStatement) iStatement() { _ = "STUB: not implemented"; return }
+func (*Exec) iStatement()           { _ = "STUB: not implemented"; return }
+func (*Return) iStatement()         { _ = "STUB: not implemented"; return }
+func (*TriggerFuncExec) iStatement() {
+	_ = "STUB: not implemented"
 
-// ParenSelect can actually not be a top level statement,
-// but we have to allow it because it's a requirement
-// of SelectStatement.
-func (*ParenSelect) iStatement() {}
+	// ParenSelect can actually not be a top level statement,
+	// but we have to allow it because it's a requirement
+	// of SelectStatement.
+	return
+}
 
-// SelectStatement any SELECT statement.
+func (*ParenSelect) iStatement() {
+	_ = "STUB: not implemented"
+
+	// SelectStatement any SELECT statement.
+	return
+}
+
 type SelectStatement interface {
 	iSelectStatement()
 	iStatement()
@@ -128,11 +94,15 @@ type SelectStatement interface {
 	SQLNode
 }
 
-func (*Select) iSelectStatement()      {}
-func (*Union) iSelectStatement()       {}
-func (*ParenSelect) iSelectStatement() {}
+func (*Select) iSelectStatement() { _ = "STUB: not implemented"; return }
+func (*Union) iSelectStatement()  { _ = "STUB: not implemented"; return }
+func (*ParenSelect) iSelectStatement() {
+	_ = "STUB: not implemented"
 
-// Select represents a SELECT statement.
+	// Select represents a SELECT statement.
+	return
+}
+
 type Select struct {
 	Cache       string
 	Comments    Comments
@@ -156,16 +126,7 @@ type DistinctClause struct {
 }
 
 // Format formats the node.
-func (node *DistinctClause) Format(buf *nodeBuffer) {
-	if node == nil {
-		return
-	}
-	if len(node.On) > 0 {
-		buf.Printf("distinct on (%v) ", node.On)
-	} else {
-		buf.Printf("distinct ")
-	}
-}
+func (node *DistinctClause) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Select.Hints
 const (
@@ -185,76 +146,31 @@ const (
 )
 
 // addOrder adds an order by element
-func (node *Select) addOrder(order *Order) {
-	node.OrderBy = append(node.OrderBy, order)
-}
+func (node *Select) addOrder(order *Order) { _ = "STUB: not implemented"; return }
 
 // setLimit sets the limit clause
 func (node *Select) setLimit(limit *Limit) {
-	node.Limit = limit
+	_ = "STUB: not implemented"
+
+	// Format formats the node.
+	return
 }
 
-// Format formats the node.
-func (node *Select) Format(buf *nodeBuffer) {
-	buf.Printf("%vselect %v%s%v%s",
-		node.With, node.Comments, node.Cache, node.Distinct, node.Hints,
-	)
-	if node.Top != nil {
-		buf.Printf("top %v ", node.Top)
-	}
-	buf.Printf("%v", node.SelectExprs)
-	if !node.From.IsEmpty() {
-		buf.Printf(" from %v", node.From)
-	}
-	buf.Printf("%v%v%v%v%v%s",
-		node.Where,
-		node.GroupBy, node.Having, node.OrderBy,
-		node.Limit, node.Lock)
-}
+func (node *Select) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // addWhere adds the boolean expression to the
 // WHERE clause as an AND condition. If the expression
 // is an OR clause, it parenthesizes it. Currently,
 // the OR operator is the only one that's lower precedence
 // than AND.
-func (node *Select) addWhere(expr Expr) {
-	if _, ok := expr.(*OrExpr); ok {
-		expr = &ParenExpr{Expr: expr}
-	}
-	if node.Where == nil {
-		node.Where = &Where{
-			Type: WhereStr,
-			Expr: expr,
-		}
-		return
-	}
-	node.Where.Expr = &AndExpr{
-		Left:  node.Where.Expr,
-		Right: expr,
-	}
-}
+func (node *Select) addWhere(expr Expr) { _ = "STUB: not implemented"; return }
 
 // addHaving adds the boolean expression to the
 // HAVING clause as an AND condition. If the expression
 // is an OR clause, it parenthesizes it. Currently,
 // the OR operator is the only one that's lower precedence
 // than AND.
-func (node *Select) addHaving(expr Expr) {
-	if _, ok := expr.(*OrExpr); ok {
-		expr = &ParenExpr{Expr: expr}
-	}
-	if node.Having == nil {
-		node.Having = &Where{
-			Type: HavingStr,
-			Expr: expr,
-		}
-		return
-	}
-	node.Having.Expr = &AndExpr{
-		Left:  node.Having.Expr,
-		Right: expr,
-	}
-}
+func (node *Select) addHaving(expr Expr) { _ = "STUB: not implemented"; return }
 
 // ParenSelect is a parenthesized SELECT statement.
 type ParenSelect struct {
@@ -262,19 +178,13 @@ type ParenSelect struct {
 }
 
 // addOrder adds an order by element
-func (node *ParenSelect) addOrder(order *Order) {
-	panic("unreachable")
-}
+func (node *ParenSelect) addOrder(order *Order) { _ = "STUB: not implemented"; return }
 
 // setLimit sets the limit clause
-func (node *ParenSelect) setLimit(limit *Limit) {
-	panic("unreachable")
-}
+func (node *ParenSelect) setLimit(limit *Limit) { _ = "STUB: not implemented"; return }
 
 // Format formats the node.
-func (node *ParenSelect) Format(buf *nodeBuffer) {
-	buf.Printf("(%v)", node.Select)
-}
+func (node *ParenSelect) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Union represents a UNION statement.
 type Union struct {
@@ -298,20 +208,17 @@ const (
 )
 
 // addOrder adds an order by element
-func (node *Union) addOrder(order *Order) {
-	node.OrderBy = append(node.OrderBy, order)
-}
+func (node *Union) addOrder(order *Order) { _ = "STUB: not implemented"; return }
 
 // setLimit sets the limit clause
 func (node *Union) setLimit(limit *Limit) {
-	node.Limit = limit
+	_ = "STUB: not implemented"
+
+	// Format formats the node.
+	return
 }
 
-// Format formats the node.
-func (node *Union) Format(buf *nodeBuffer) {
-	buf.Printf("%v%v %s %v%v%v%s", node.With, node.Left, node.Type, node.Right,
-		node.OrderBy, node.Limit, node.Lock)
-}
+func (node *Union) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // With represents a WITH clause (Common Table Expressions)
 type With struct {
@@ -320,23 +227,7 @@ type With struct {
 }
 
 // Format formats the node.
-func (node *With) Format(buf *nodeBuffer) {
-	if node == nil || len(node.CTEs) == 0 {
-		return
-	}
-	if node.Recursive {
-		buf.Printf("WITH RECURSIVE ")
-	} else {
-		buf.Printf("WITH ")
-	}
-	for i, cte := range node.CTEs {
-		if i > 0 {
-			buf.Printf(", ")
-		}
-		buf.Printf("%v", cte)
-	}
-	buf.Printf(" ")
-}
+func (node *With) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // CommonTableExpr represents a single Common Table Expression in a WITH clause
 type CommonTableExpr struct {
@@ -346,9 +237,7 @@ type CommonTableExpr struct {
 }
 
 // Format formats the node.
-func (node *CommonTableExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v AS (%v)", node.Name, node.Definition)
-}
+func (node *CommonTableExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Stream represents a SELECT statement.
 type Stream struct {
@@ -358,10 +247,7 @@ type Stream struct {
 }
 
 // Format formats the node.
-func (node *Stream) Format(buf *nodeBuffer) {
-	buf.Printf("stream %v%v from %v",
-		node.Comments, node.SelectExpr, node.Table)
-}
+func (node *Stream) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Insert represents an INSERT or REPLACE statement.
 // Per the MySQL docs, http://dev.mysql.com/doc/refman/5.7/en/replace.html
@@ -389,12 +275,7 @@ const (
 )
 
 // Format formats the node.
-func (node *Insert) Format(buf *nodeBuffer) {
-	buf.Printf("%s %v%sinto %v%v%v %v%v",
-		node.Action,
-		node.Comments, node.Ignore,
-		node.Table, node.Partitions, node.Columns, node.Rows, node.OnDup)
-}
+func (node *Insert) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // InsertRows represents the rows for an INSERT statement.
 type InsertRows interface {
@@ -402,13 +283,17 @@ type InsertRows interface {
 	SQLNode
 }
 
-func (*Select) iInsertRows()      {}
-func (*Union) iInsertRows()       {}
-func (Values) iInsertRows()       {}
-func (*ParenSelect) iInsertRows() {}
+func (*Select) iInsertRows() { _ = "STUB: not implemented"; return }
+func (*Union) iInsertRows()  { _ = "STUB: not implemented"; return }
+func (Values) iInsertRows()  { _ = "STUB: not implemented"; return }
+func (*ParenSelect) iInsertRows() {
+	_ = "STUB: not implemented"
 
-// Update represents an UPDATE statement.
-// If you add fields here, consider adding them to calls to validateSubquerySamePlan.
+	// Update represents an UPDATE statement.
+	// If you add fields here, consider adding them to calls to validateSubquerySamePlan.
+	return
+}
+
 type Update struct {
 	Comments   Comments
 	TableExprs TableExprs
@@ -420,13 +305,7 @@ type Update struct {
 }
 
 // Format formats the node.
-func (node *Update) Format(buf *nodeBuffer) {
-	buf.Printf("update %v%v set %v", node.Comments, node.TableExprs, node.Exprs)
-	if !node.From.IsEmpty() {
-		buf.Printf(" from %v", node.From)
-	}
-	buf.Printf("%v%v%v", node.Where, node.OrderBy, node.Limit)
-}
+func (node *Update) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Delete represents a DELETE statement.
 // If you add fields here, consider adding them to calls to validateSubquerySamePlan.
@@ -441,13 +320,7 @@ type Delete struct {
 }
 
 // Format formats the node.
-func (node *Delete) Format(buf *nodeBuffer) {
-	buf.Printf("delete %v", node.Comments)
-	if node.Targets != nil {
-		buf.Printf("%v ", node.Targets)
-	}
-	buf.Printf("from %v%v%v%v%v", node.TableExprs, node.Partitions, node.Where, node.OrderBy, node.Limit)
-}
+func (node *Delete) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Set represents a SET statement.
 type Set struct {
@@ -463,13 +336,7 @@ const (
 )
 
 // Format formats the node.
-func (node *Set) Format(buf *nodeBuffer) {
-	if node.Scope == "" {
-		buf.Printf("set %v%v", node.Comments, node.Exprs)
-	} else {
-		buf.Printf("set %v%s %v", node.Comments, node.Scope, node.Exprs)
-	}
-}
+func (node *Set) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // DDL represents a CREATE, ALTER, DROP, RENAME or TRUNCATE statement.
 // Table is set for AlterStr, DropStr, RenameStr, TruncateTable
@@ -481,14 +348,7 @@ type MultiStatement struct {
 }
 
 // Format formats the MultiStatement
-func (node *MultiStatement) Format(buf *nodeBuffer) {
-	for i, stmt := range node.Statements {
-		if i > 0 {
-			buf.WriteString("; ")
-		}
-		stmt.Format(buf)
-	}
-}
+func (node *MultiStatement) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Exec represents a EXEC statement.
 type Exec struct {
@@ -498,13 +358,7 @@ type Exec struct {
 }
 
 // Format formats the Exec
-func (node *Exec) Format(buf *nodeBuffer) {
-	if node.Name.IsEmpty() {
-		buf.Printf("%s (%v)", node.Action, node.Exprs)
-		return
-	}
-	buf.Printf("%s %s %v", node.Action, node.Name.Name, node.Exprs)
-}
+func (node *Exec) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Return represents a RETURN statement.
 type Return struct {
@@ -512,12 +366,7 @@ type Return struct {
 }
 
 // Format formats the node.
-func (node *Return) Format(buf *nodeBuffer) {
-	buf.WriteString("return")
-	if node.Expr != nil {
-		buf.Printf(" %v", node.Expr)
-	}
-}
+func (node *Return) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type DDL struct {
 	Action        DDLAction
@@ -596,38 +445,10 @@ const (
 )
 
 // Format formats the node.
-func (node *DDL) Format(buf *nodeBuffer) {
-	switch node.Action {
-	case CreateTable:
-		if node.PartitionOf != nil {
-			buf.Printf("create table %v partition of %v", node.NewName, node.PartitionOf.ParentTable)
-			node.PartitionOf.BoundSpec.Format(buf)
-		} else if node.TableSpec == nil {
-			buf.Printf("create table %v", node.NewName)
-		} else {
-			buf.Printf("create table %v %v", node.NewName, node.TableSpec)
-		}
-	case CreateView:
-		if node.View.SecurityType != "" {
-			buf.Printf("alter %v view %v as %v", node.View.SecurityType, node.View.Name, node.View.Definition)
-		} else {
-			buf.Printf("alter %v as %v", node.View.Name, node.View.Definition)
-		}
-	default:
-		panic(fmt.Sprintf("unexpected action: %v", node.Action))
-	}
-}
+func (node *DDL) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Format formats the PartitionBoundSpec node.
-func (node *PartitionBoundSpec) Format(buf *nodeBuffer) {
-	if node.IsDefault {
-		buf.WriteString(" default")
-	} else if node.In != nil {
-		buf.Printf(" for values in (%v)", node.In)
-	} else if node.From != nil && node.To != nil {
-		buf.Printf(" for values from (%v) to (%v)", node.From, node.To)
-	}
-}
+func (node *PartitionBoundSpec) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Partition strings
 const (
@@ -642,20 +463,7 @@ type PartitionSpec struct {
 }
 
 // Format formats the node.
-func (node *PartitionSpec) Format(buf *nodeBuffer) {
-	switch node.Action {
-	case ReorganizeStr:
-		buf.Printf("%s %v into (", node.Action, node.Name)
-		var prefix string
-		for _, pd := range node.Definitions {
-			buf.Printf("%s%v", prefix, pd)
-			prefix = ", "
-		}
-		buf.Printf(")")
-	default:
-		panic("unimplemented")
-	}
-}
+func (node *PartitionSpec) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // PartitionDefinition describes a partition definition for RANGE or LIST partitions
 type PartitionDefinition struct {
@@ -667,17 +475,7 @@ type PartitionDefinition struct {
 }
 
 // Format formats the node
-func (node *PartitionDefinition) Format(buf *nodeBuffer) {
-	if node.In != nil {
-		buf.Printf("partition %v values in (%v)", node.Name, node.In)
-	} else if node.Maxvalue {
-		buf.Printf("partition %v values less than (maxvalue)", node.Name)
-	} else if node.LessThan != nil {
-		buf.Printf("partition %v values less than (%v)", node.Name, node.LessThan)
-	} else if node.Limit != nil {
-		buf.Printf("partition %v values less than (%v)", node.Name, node.Limit)
-	}
-}
+func (node *PartitionDefinition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // TablePartition represents PARTITION BY clause for MySQL/MariaDB
 type TablePartition struct {
@@ -689,33 +487,11 @@ type TablePartition struct {
 }
 
 // Format formats the node
-func (p *TablePartition) Format(buf *nodeBuffer) {
-	buf.Printf("partition by %s", strings.ToLower(p.Type))
-	if p.Columns != nil {
-		// RANGE COLUMNS, LIST COLUMNS, KEY
-		var cols []string
-		for _, c := range p.Columns {
-			cols = append(cols, String(&c))
-		}
-		buf.Printf(" (%s)", strings.Join(cols, ", "))
-	} else if p.Expr != nil {
-		// RANGE, LIST, HASH
-		buf.Printf(" (%v)", p.Expr)
-	}
-	if p.Partitions > 0 {
-		buf.Printf(" partitions %d", p.Partitions)
-	}
-	if len(p.Definitions) > 0 {
-		buf.Printf("\n(")
-		for i, def := range p.Definitions {
-			if i > 0 {
-				buf.Printf(",\n ")
-			}
-			def.Format(buf)
-		}
-		buf.Printf(")")
-	}
-}
+func (p *TablePartition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
+
+// RANGE COLUMNS, LIST COLUMNS, KEY
+
+// RANGE, LIST, HASH
 
 // TableSpec describes the structure of a table from a CREATE TABLE statement
 type TableSpec struct {
@@ -729,60 +505,24 @@ type TableSpec struct {
 }
 
 // Format formats the node.
-func (ts *TableSpec) Format(buf *nodeBuffer) {
-	buf.Printf("(\n")
-	for i, col := range ts.Columns {
-		if i == 0 {
-			buf.Printf("\t%v", col)
-		} else {
-			buf.Printf(",\n\t%v", col)
-		}
-	}
-	for _, idx := range ts.Indexes {
-		buf.Printf(",\n\t%v", idx)
-	}
-
-	var kvOptions strings.Builder
-	var sqliteOpts []string
-	for key, value := range ts.Options {
-		if value == "" {
-			sqliteOpts = append(sqliteOpts, key)
-		} else {
-			kvOptions.WriteString(" " + key + "=" + value)
-		}
-	}
-	if len(sqliteOpts) > 0 {
-		sort.Strings(sqliteOpts)
-		buf.Printf("\n) %s", strings.Join(sqliteOpts, ", "))
-	} else {
-		buf.Printf("\n)%s", strings.ReplaceAll(kvOptions.String(), ", ", ",\n  "))
-	}
-	if ts.Partition != nil {
-		buf.Printf("\n")
-		ts.Partition.Format(buf)
-	}
-}
+func (ts *TableSpec) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // addColumn appends the given column to the list in the spec
-func (ts *TableSpec) addColumn(cd *ColumnDefinition) {
-	ts.Columns = append(ts.Columns, cd)
-}
+func (ts *TableSpec) addColumn(cd *ColumnDefinition) { _ = "STUB: not implemented"; return }
 
 // addIndex appends the given index to the list in the spec
-func (ts *TableSpec) addIndex(id *IndexDefinition) {
-	ts.Indexes = append(ts.Indexes, id)
-}
+func (ts *TableSpec) addIndex(id *IndexDefinition) { _ = "STUB: not implemented"; return }
 
-func (ts *TableSpec) addCheck(check *CheckDefinition) {
-	ts.Checks = append(ts.Checks, check)
-}
+func (ts *TableSpec) addCheck(check *CheckDefinition) { _ = "STUB: not implemented"; return }
 
 func (ts *TableSpec) addForeignKey(foreignKey *ForeignKeyDefinition) {
-	ts.ForeignKeys = append(ts.ForeignKeys, foreignKey)
+	_ = "STUB: not implemented"
+	return
 }
 
 func (ts *TableSpec) addExclusion(exclusion *ExclusionDefinition) {
-	ts.Exclusions = append(ts.Exclusions, exclusion)
+	_ = "STUB: not implemented"
+	return
 }
 
 // ColumnDefinition describes a column in a CREATE TABLE statement
@@ -793,12 +533,7 @@ type ColumnDefinition struct {
 }
 
 // Format formats the node.
-func (col *ColumnDefinition) Format(buf *nodeBuffer) {
-	buf.Printf("%v %v", col.Name, &col.Type)
-	if len(col.InlineComment) > 0 {
-		buf.Printf(" %s", col.InlineComment)
-	}
-}
+func (col *ColumnDefinition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type Sequence struct {
 	Name        string
@@ -918,78 +653,7 @@ type ExclusionDefinition struct {
 }
 
 // Format returns a canonical string representation of the type and all relevant options
-func (ct *ColumnType) Format(buf *nodeBuffer) {
-	buf.Printf("%s", ct.Type)
-
-	if ct.Length != nil && ct.Scale != nil {
-		buf.Printf("(%v,%v)", ct.Length, ct.Scale)
-
-	} else if ct.Length != nil {
-		buf.Printf("(%v)", ct.Length)
-	}
-
-	if ct.EnumValues != nil {
-		quotedValues := make([]string, len(ct.EnumValues))
-		for i, v := range ct.EnumValues {
-			quotedValues[i] = "'" + v + "'"
-		}
-		buf.Printf("(%s)", strings.Join(quotedValues, ", "))
-	}
-
-	if ct.Unsigned {
-		buf.Printf(" %s", keywordStrings[UNSIGNED])
-	}
-	if ct.Zerofill {
-		buf.Printf(" %s", keywordStrings[ZEROFILL])
-	}
-	if ct.Charset != "" {
-		buf.Printf(" %s %s %s", keywordStrings[CHARACTER], keywordStrings[SET], ct.Charset)
-	}
-	if ct.Collate != "" {
-		buf.Printf(" %s %s", keywordStrings[COLLATE], ct.Collate)
-	}
-	if ct.Timezone {
-		buf.Printf(" %s %s %s", keywordStrings[WITH], keywordStrings[TIME], keywordStrings[ZONE])
-	}
-	if ct.NotNull != nil && *ct.NotNull {
-		buf.Printf(" %s %s", keywordStrings[NOT], keywordStrings[NULL])
-	}
-	if ct.Default != nil {
-		buf.Printf(" %s", keywordStrings[DEFAULT])
-		if _, ok := ct.Default.Expression.Expr.(*SQLVal); ok {
-			buf.Printf(" %s", String(ct.Default.Expression.Expr))
-		} else {
-			buf.Printf("(%v)", ct.Default.Expression.Expr)
-		}
-	}
-	if ct.OnUpdate != nil {
-		buf.Printf(" %s %s %s", keywordStrings[ON], keywordStrings[UPDATE], String(ct.OnUpdate))
-	}
-	if ct.Autoincrement {
-		buf.Printf(" %s", keywordStrings[AUTO_INCREMENT])
-	}
-	if ct.Comment != nil {
-		buf.Printf(" %s %s", keywordStrings[COMMENT_KEYWORD], String(ct.Comment))
-	}
-	if ct.Check != nil {
-		buf.Printf(" %s %s", keywordStrings[CHECK], String(&ct.Check.Where))
-	}
-	if ct.KeyOpt == colKeyPrimary {
-		buf.Printf(" %s %s", keywordStrings[PRIMARY], keywordStrings[KEY])
-	}
-	if ct.KeyOpt == colKeyUnique {
-		buf.Printf(" %s", keywordStrings[UNIQUE])
-	}
-	if ct.KeyOpt == colKeyUniqueKey {
-		buf.Printf(" %s %s", keywordStrings[UNIQUE], keywordStrings[KEY])
-	}
-	if ct.KeyOpt == colKeySpatialKey {
-		buf.Printf(" %s %s", keywordStrings[SPATIAL], keywordStrings[KEY])
-	}
-	if ct.KeyOpt == colKey {
-		buf.Printf(" %s", keywordStrings[KEY])
-	}
-}
+func (ct *ColumnType) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // IndexDefinition describes an index in a CREATE TABLE statement
 type IndexDefinition struct {
@@ -1001,29 +665,7 @@ type IndexDefinition struct {
 }
 
 // Format formats the node.
-func (idx *IndexDefinition) Format(buf *nodeBuffer) {
-	buf.Printf("%v (", idx.Info)
-	for i, col := range idx.Columns {
-		if i != 0 {
-			buf.Printf(", %v", col.Column)
-		} else {
-			buf.Printf("%v", col.Column)
-		}
-		if col.Length != nil {
-			buf.Printf("(%v)", col.Length)
-		}
-	}
-	buf.Printf(")")
-
-	for _, opt := range idx.Options {
-		buf.Printf(" %s", opt.Name)
-		if opt.Name == "using" {
-			buf.Printf(" %s", opt.Value.Val)
-		} else {
-			buf.Printf(" %v", opt.Value)
-		}
-	}
-}
+func (idx *IndexDefinition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // IndexInfo describes the name and type of an index in a CREATE TABLE statement
 type IndexInfo struct {
@@ -1038,13 +680,7 @@ type IndexInfo struct {
 }
 
 // Format formats the node.
-func (ii *IndexInfo) Format(buf *nodeBuffer) {
-	if ii.Primary {
-		buf.Printf("%s", ii.Type)
-	} else {
-		buf.Printf("%s %v", ii.Type, ii.Name)
-	}
-}
+func (ii *IndexInfo) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type IndexColumnsOrExpression struct {
 	IndexCols []IndexColumn
@@ -1064,12 +700,7 @@ type IndexColumn struct {
 	WithoutOverlaps bool // For PostgreSQL 18+ temporal PRIMARY KEY / UNIQUE constraints
 }
 
-func (ic IndexColumn) String() string {
-	if ic.Expression != nil {
-		return String(ic.Expression)
-	}
-	return ic.Column.Name
-}
+func (ic IndexColumn) String() string { _ = "STUB: not implemented"; return "" }
 
 // LengthScaleOption is used for types that have an optional length
 // and scale
@@ -1177,33 +808,7 @@ type Show struct {
 }
 
 // Format formats the node.
-func (node *Show) Format(buf *nodeBuffer) {
-	if node.Type == "tables" && node.ShowTablesOpt != nil {
-		opt := node.ShowTablesOpt
-		if opt.DbName != "" {
-			if opt.Filter != nil {
-				buf.Printf("show %s%stables from %s %v", opt.Extended, opt.Full, opt.DbName, opt.Filter)
-			} else {
-				buf.Printf("show %s%stables from %s", opt.Extended, opt.Full, opt.DbName)
-			}
-		} else {
-			if opt.Filter != nil {
-				buf.Printf("show %s%stables %v", opt.Extended, opt.Full, opt.Filter)
-			} else {
-				buf.Printf("show %s%stables", opt.Extended, opt.Full)
-			}
-		}
-		return
-	}
-	if node.Scope == "" {
-		buf.Printf("show %s", node.Type)
-	} else {
-		buf.Printf("show %s %s", node.Scope, node.Type)
-	}
-	if !node.OnTable.Name.IsEmpty() {
-		buf.Printf(" on %v", node.OnTable)
-	}
-}
+func (node *Show) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ShowTablesOpt is show tables option
 type ShowTablesOpt struct {
@@ -1220,13 +825,7 @@ type ShowFilter struct {
 }
 
 // Format formats the node.
-func (node *ShowFilter) Format(buf *nodeBuffer) {
-	if node.Like != "" {
-		buf.Printf("like '%s'", node.Like)
-	} else {
-		buf.Printf("where %v", node.Filter)
-	}
-}
+func (node *ShowFilter) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Use represents a use statement.
 type Use struct {
@@ -1234,37 +833,25 @@ type Use struct {
 }
 
 // Format formats the node.
-func (node *Use) Format(buf *nodeBuffer) {
-	if !node.DBName.IsEmpty() {
-		buf.Printf("use %v", node.DBName)
-	} else {
-		buf.Printf("use")
-	}
-}
+func (node *Use) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Begin represents a Begin statement.
 type Begin struct{}
 
 // Format formats the node.
-func (node *Begin) Format(buf *nodeBuffer) {
-	buf.WriteString("begin")
-}
+func (node *Begin) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Commit represents a Commit statement.
 type Commit struct{}
 
 // Format formats the node.
-func (node *Commit) Format(buf *nodeBuffer) {
-	buf.WriteString("commit")
-}
+func (node *Commit) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Rollback represents a Rollback statement.
 type Rollback struct{}
 
 // Format formats the node.
-func (node *Rollback) Format(buf *nodeBuffer) {
-	buf.WriteString("rollback")
-}
+func (node *Rollback) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // OtherRead represents a DESCRIBE, or EXPLAIN statement.
 // It should be used only as an indicator. It does not contain
@@ -1272,9 +859,7 @@ func (node *Rollback) Format(buf *nodeBuffer) {
 type OtherRead struct{}
 
 // Format formats the node.
-func (node *OtherRead) Format(buf *nodeBuffer) {
-	buf.WriteString("otherread")
-}
+func (node *OtherRead) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // OtherAdmin represents a misc statement that relies on ADMIN privileges,
 // such as REPAIR, OPTIMIZE, or TRUNCATE statement.
@@ -1283,9 +868,7 @@ func (node *OtherRead) Format(buf *nodeBuffer) {
 type OtherAdmin struct{}
 
 // Format formats the node.
-func (node *OtherAdmin) Format(buf *nodeBuffer) {
-	buf.WriteString("otheradmin")
-}
+func (node *OtherAdmin) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // SetOption represents a SET statement that specifies option in SQL Server.
 type SetBoolOption struct {
@@ -1294,24 +877,13 @@ type SetBoolOption struct {
 }
 
 // Format formats the node.
-func (node *SetBoolOption) Format(buf *nodeBuffer) {
-	buf.Printf("set %s", strings.Join(node.OptionNames, ", "))
-	if node.Value.Val[0] == 't' {
-		buf.WriteString(" on")
-	} else {
-		buf.WriteString(" off")
-	}
-}
+func (node *SetBoolOption) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Comments represents a list of comments.
 type Comments []string
 
 // Format formats the node.
-func (node Comments) Format(buf *nodeBuffer) {
-	for _, c := range node {
-		buf.Printf("%s ", c)
-	}
-}
+func (node Comments) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type View struct {
 	Type         string
@@ -1344,16 +916,7 @@ type TriggerFuncExec struct {
 	Args     Exprs
 }
 
-func (node *TriggerFuncExec) Format(buf *nodeBuffer) {
-	buf.Printf("EXECUTE %s %v(", node.Keyword, node.FuncName)
-	for i, arg := range node.Args {
-		if i > 0 {
-			buf.Printf(", ")
-		}
-		buf.Printf("%v", arg)
-	}
-	buf.Printf(")")
-}
+func (node *TriggerFuncExec) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Function represents a PostgreSQL CREATE FUNCTION statement
 type Function struct {
@@ -1400,23 +963,12 @@ type Comment struct {
 type SelectExprs []SelectExpr
 
 // Format formats the node.
-func (node SelectExprs) Format(buf *nodeBuffer) {
-	var prefix string
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node SelectExprs) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // SelectExprsToExprs converts SelectExprs to Exprs by extracting the Expr from each AliasedExpr.
 func SelectExprsToExprs(selectExprs SelectExprs) Exprs {
-	var exprs Exprs
-	for _, se := range selectExprs {
-		if ae, ok := se.(*AliasedExpr); ok {
-			exprs = append(exprs, ae.Expr)
-		}
-	}
-	return exprs
+	_ = "STUB: not implemented"
+	return *new(Exprs)
 }
 
 // SelectExpr represents a SELECT expression.
@@ -1425,21 +977,20 @@ type SelectExpr interface {
 	SQLNode
 }
 
-func (*StarExpr) iSelectExpr()    {}
-func (*AliasedExpr) iSelectExpr() {}
+func (*StarExpr) iSelectExpr() { _ = "STUB: not implemented"; return }
+func (*AliasedExpr) iSelectExpr() {
+	_ = "STUB: not implemented"
 
-// StarExpr defines a '*' or 'table.*' expression.
+	// StarExpr defines a '*' or 'table.*' expression.
+	return
+}
+
 type StarExpr struct {
 	TableName TableName
 }
 
 // Format formats the node.
-func (node *StarExpr) Format(buf *nodeBuffer) {
-	if !node.TableName.IsEmpty() {
-		buf.Printf("%v.", node.TableName)
-	}
-	buf.Printf("*")
-}
+func (node *StarExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // AliasedExpr defines an aliased SELECT expression.
 type AliasedExpr struct {
@@ -1448,61 +999,28 @@ type AliasedExpr struct {
 }
 
 // Format formats the node.
-func (node *AliasedExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v", node.Expr)
-	if !node.As.IsEmpty() {
-		buf.Printf(" as %v", node.As)
-	}
-}
+func (node *AliasedExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Columns represents an insert column list.
 type Columns []Ident
 
 // Format formats the node.
-func (node Columns) Format(buf *nodeBuffer) {
-	if node == nil {
-		return
-	}
-	prefix := "("
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-	buf.WriteString(")")
-}
+func (node Columns) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Partitions is a type alias for Columns so we can handle printing efficiently
 type Partitions Columns
 
 // Format formats the node
-func (node Partitions) Format(buf *nodeBuffer) {
-	if node == nil {
-		return
-	}
-	prefix := " partition ("
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-	buf.WriteString(")")
-}
+func (node Partitions) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // TableExprs represents a list of table expressions.
 type TableExprs []TableExpr
 
 // Format formats the node.
-func (node TableExprs) Format(buf *nodeBuffer) {
-	var prefix string
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node TableExprs) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // IsEmpty returns true if there are no table expressions.
-func (node TableExprs) IsEmpty() bool {
-	return len(node) == 0
-}
+func (node TableExprs) IsEmpty() bool { _ = "STUB: not implemented"; return false }
 
 // TableExpr represents a table expression.
 type TableExpr interface {
@@ -1510,13 +1028,17 @@ type TableExpr interface {
 	SQLNode
 }
 
-func (*AliasedTableExpr) iTableExpr() {}
-func (*ParenTableExpr) iTableExpr()   {}
-func (*JoinTableExpr) iTableExpr()    {}
+func (*AliasedTableExpr) iTableExpr() { _ = "STUB: not implemented"; return }
+func (*ParenTableExpr) iTableExpr()   { _ = "STUB: not implemented"; return }
+func (*JoinTableExpr) iTableExpr() {
+	_ = "STUB: not implemented"
 
-// AliasedTableExpr represents a table expression
-// coupled with an optional alias or index hint.
-// If As is empty, no alias was used.
+	// AliasedTableExpr represents a table expression
+	// coupled with an optional alias or index hint.
+	// If As is empty, no alias was used.
+	return
+}
+
 type AliasedTableExpr struct {
 	Expr       SimpleTableExpr
 	Partitions Partitions
@@ -1527,22 +1049,9 @@ type AliasedTableExpr struct {
 }
 
 // Format formats the node.
-func (node *AliasedTableExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v%v", node.Expr, node.Partitions)
-	if !node.As.IsEmpty() {
-		buf.Printf(" as %v", node.As)
-		if len(node.Columns) > 0 {
-			buf.Printf("(%v)", node.Columns)
-		}
-	}
-	if len(node.TableHints) != 0 {
-		buf.Printf(" with(%s)", strings.Join(node.TableHints, ", "))
-	}
-	if node.IndexHints != nil {
-		// Hint node provides the space padding.
-		buf.Printf("%v", node.IndexHints)
-	}
-}
+func (node *AliasedTableExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
+
+// Hint node provides the space padding.
 
 // SimpleTableExpr represents a simple table expression.
 type SimpleTableExpr interface {
@@ -1550,35 +1059,28 @@ type SimpleTableExpr interface {
 	SQLNode
 }
 
-func (TableName) iSimpleTableExpr()          {}
-func (*Subquery) iSimpleTableExpr()          {}
-func (*FuncExpr) iSimpleTableExpr()          {}
-func (*OpenJSONTableExpr) iSimpleTableExpr() {}
-func (Values) iSimpleTableExpr()             {}
+func (TableName) iSimpleTableExpr()          { _ = "STUB: not implemented"; return }
+func (*Subquery) iSimpleTableExpr()          { _ = "STUB: not implemented"; return }
+func (*FuncExpr) iSimpleTableExpr()          { _ = "STUB: not implemented"; return }
+func (*OpenJSONTableExpr) iSimpleTableExpr() { _ = "STUB: not implemented"; return }
+func (Values) iSimpleTableExpr() {
+	_ = "STUB: not implemented"
 
-// OpenJSONTableExpr represents a SQL Server OPENJSON table expression.
+	// OpenJSONTableExpr represents a SQL Server OPENJSON table expression.
+	return
+}
+
 type OpenJSONTableExpr struct {
 	Exprs SelectExprs
 	With  OpenJSONSchema
 }
 
-func (node *OpenJSONTableExpr) Format(buf *nodeBuffer) {
-	buf.Printf("openjson(%v)", node.Exprs)
-	if len(node.With) > 0 {
-		buf.Printf(" with (%v)", node.With)
-	}
-}
+func (node *OpenJSONTableExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // OpenJSONSchema represents the OPENJSON WITH column schema.
 type OpenJSONSchema []*OpenJSONSchemaItem
 
-func (node OpenJSONSchema) Format(buf *nodeBuffer) {
-	var prefix string
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node OpenJSONSchema) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // OpenJSONSchemaItem represents a single OPENJSON WITH column definition.
 type OpenJSONSchemaItem struct {
@@ -1588,27 +1090,13 @@ type OpenJSONSchemaItem struct {
 	AsJSON bool
 }
 
-func (node *OpenJSONSchemaItem) Format(buf *nodeBuffer) {
-	buf.Printf("%v %v", node.Name, &node.Type)
-	if node.Path != "" {
-		buf.Printf(" %v", NewStrVal(node.Path))
-	}
-	if node.AsJSON {
-		buf.Printf(" as json")
-	}
-}
+func (node *OpenJSONSchemaItem) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // TableNames is a list of TableName.
 type TableNames []TableName
 
 // Format formats the node.
-func (node TableNames) Format(buf *nodeBuffer) {
-	var prefix string
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node TableNames) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // TableName represents a table name: [Name] or [Schema].[Name]
 type TableName struct {
@@ -1617,20 +1105,13 @@ type TableName struct {
 }
 
 // Format formats the node.
-func (node TableName) Format(buf *nodeBuffer) {
-	if node.IsEmpty() {
-		return
-	}
-	if !node.Schema.IsEmpty() {
-		buf.Printf("%v.", node.Schema)
-	}
-	buf.Printf("%v", node.Name)
-}
+func (node TableName) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // IsEmpty returns true if TableName is nil or empty.
 func (node TableName) IsEmpty() bool {
+	_ = "STUB: not implemented"
 	// If Name is empty, Schema is also empty.
-	return node.Name.IsEmpty()
+	return false
 }
 
 // toViewName returns a TableName acceptable for use as a VIEW.
@@ -1638,15 +1119,11 @@ func (node TableName) IsEmpty() bool {
 // For unquoted identifiers, the name is lowercased (PostgreSQL normalizes to lowercase).
 // Schema is left untouched as databases are case-sensitive for schemas.
 func (node TableName) toViewName() TableName {
-	name := node.Name.Name
+	_ = "STUB: not implemented"
+	return *
+
 	// Only lowercase unquoted identifiers; quoted identifiers preserve their case
-	if !node.Name.Quoted {
-		name = strings.ToLower(name)
-	}
-	return TableName{
-		Schema: node.Schema,
-		Name:   NewIdent(name, node.Name.Quoted),
-	}
+	new(TableName)
 }
 
 // ObjectName represents a schema-qualified database object name: [Name] or [Schema].[Name]
@@ -1658,12 +1135,7 @@ type ObjectName struct {
 }
 
 // Format formats the node.
-func (node ObjectName) Format(buf *nodeBuffer) {
-	if !node.Schema.IsEmpty() {
-		buf.Printf("%v.", node.Schema)
-	}
-	buf.Printf("%v", node.Name)
-}
+func (node ObjectName) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ParenTableExpr represents a parenthesized list of TableExpr.
 type ParenTableExpr struct {
@@ -1671,9 +1143,7 @@ type ParenTableExpr struct {
 }
 
 // Format formats the node.
-func (node *ParenTableExpr) Format(buf *nodeBuffer) {
-	buf.Printf("(%v)", node.Exprs)
-}
+func (node *ParenTableExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // JoinCondition represents the join conditions (either a ON or USING clause)
 // of a JoinTableExpr.
@@ -1683,14 +1153,7 @@ type JoinCondition struct {
 }
 
 // Format formats the node.
-func (node JoinCondition) Format(buf *nodeBuffer) {
-	if node.On != nil {
-		buf.Printf(" on %v", node.On)
-	}
-	if node.Using != nil {
-		buf.Printf(" using %v", node.Using)
-	}
-}
+func (node JoinCondition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // JoinTableExpr represents a TableExpr that's a JOIN operation.
 type JoinTableExpr struct {
@@ -1715,9 +1178,7 @@ const (
 )
 
 // Format formats the node.
-func (node *JoinTableExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v %s %v%v", node.LeftExpr, node.Join, node.RightExpr, node.Condition)
-}
+func (node *JoinTableExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // IndexHints represents a list of index hints.
 type IndexHints struct {
@@ -1733,15 +1194,7 @@ const (
 )
 
 // Format formats the node.
-func (node *IndexHints) Format(buf *nodeBuffer) {
-	buf.Printf(" %sindex ", node.Type)
-	prefix := "("
-	for _, n := range node.Indexes {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-	buf.Printf(")")
-}
+func (node *IndexHints) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Where represents a WHERE or HAVING clause.
 type Where struct {
@@ -1757,20 +1210,10 @@ const (
 
 // NewWhere creates a WHERE or HAVING clause out
 // of a Expr. If the expression is nil, it returns nil.
-func NewWhere(typ string, expr Expr) *Where {
-	if expr == nil {
-		return nil
-	}
-	return &Where{Type: typ, Expr: expr}
-}
+func NewWhere(typ string, expr Expr) *Where { _ = "STUB: not implemented"; return nil }
 
 // Format formats the node.
-func (node *Where) Format(buf *nodeBuffer) {
-	if node == nil || node.Expr == nil {
-		return
-	}
-	buf.Printf(" %s %v", node.Type, node.Expr)
-}
+func (node *Where) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Expr represents an expression.
 type Expr interface {
@@ -1778,59 +1221,57 @@ type Expr interface {
 	SQLNode
 }
 
-func (*AndExpr) iExpr()             {}
-func (*OrExpr) iExpr()              {}
-func (*NotExpr) iExpr()             {}
-func (*ParenExpr) iExpr()           {}
-func (*ComparisonExpr) iExpr()      {}
-func (*RangeCond) iExpr()           {}
-func (*IsExpr) iExpr()              {}
-func (*ExistsExpr) iExpr()          {}
-func (*SQLVal) iExpr()              {}
-func (*NullVal) iExpr()             {}
-func (BoolVal) iExpr()              {}
-func (*ColName) iExpr()             {}
-func (*NewQualifierColName) iExpr() {}
-func (ValTuple) iExpr()             {}
-func (*Subquery) iExpr()            {}
-func (ListArg) iExpr()              {}
-func (*BinaryExpr) iExpr()          {}
-func (*UnaryExpr) iExpr()           {}
-func (*IntervalExpr) iExpr()        {}
-func (*TypedLiteral) iExpr()        {}
-func (*CollateExpr) iExpr()         {}
-func (*FuncExpr) iExpr()            {}
-func (*CaseExpr) iExpr()            {}
-func (*ValuesFuncExpr) iExpr()      {}
-func (*UpdateFuncExpr) iExpr()      {}
-func (*CastExpr) iExpr()            {}
-func (*ConvertExpr) iExpr()         {}
-func (*SubstrExpr) iExpr()          {}
-func (*ExtractExpr) iExpr()         {}
-func (*ConvertUsingExpr) iExpr()    {}
-func (*MatchExpr) iExpr()           {}
-func (*GroupConcatExpr) iExpr()     {}
-func (*TrimExpr) iExpr()            {}
-func (*MethodCallExpr) iExpr()      {}
-func (*OverExpr) iExpr()            {}
-func (*Default) iExpr()             {}
-func (*ArrayConstructor) iExpr()    {}
-func (*FuncCallExpr) iExpr()        {}
-func (*NextSeqValExpr) iExpr()      {}
-func (*SuffixExpr) iExpr()          {}
+func (*AndExpr) iExpr()             { _ = "STUB: not implemented"; return }
+func (*OrExpr) iExpr()              { _ = "STUB: not implemented"; return }
+func (*NotExpr) iExpr()             { _ = "STUB: not implemented"; return }
+func (*ParenExpr) iExpr()           { _ = "STUB: not implemented"; return }
+func (*ComparisonExpr) iExpr()      { _ = "STUB: not implemented"; return }
+func (*RangeCond) iExpr()           { _ = "STUB: not implemented"; return }
+func (*IsExpr) iExpr()              { _ = "STUB: not implemented"; return }
+func (*ExistsExpr) iExpr()          { _ = "STUB: not implemented"; return }
+func (*SQLVal) iExpr()              { _ = "STUB: not implemented"; return }
+func (*NullVal) iExpr()             { _ = "STUB: not implemented"; return }
+func (BoolVal) iExpr()              { _ = "STUB: not implemented"; return }
+func (*ColName) iExpr()             { _ = "STUB: not implemented"; return }
+func (*NewQualifierColName) iExpr() { _ = "STUB: not implemented"; return }
+func (ValTuple) iExpr()             { _ = "STUB: not implemented"; return }
+func (*Subquery) iExpr()            { _ = "STUB: not implemented"; return }
+func (ListArg) iExpr()              { _ = "STUB: not implemented"; return }
+func (*BinaryExpr) iExpr()          { _ = "STUB: not implemented"; return }
+func (*UnaryExpr) iExpr()           { _ = "STUB: not implemented"; return }
+func (*IntervalExpr) iExpr()        { _ = "STUB: not implemented"; return }
+func (*TypedLiteral) iExpr()        { _ = "STUB: not implemented"; return }
+func (*CollateExpr) iExpr()         { _ = "STUB: not implemented"; return }
+func (*FuncExpr) iExpr()            { _ = "STUB: not implemented"; return }
+func (*CaseExpr) iExpr()            { _ = "STUB: not implemented"; return }
+func (*ValuesFuncExpr) iExpr()      { _ = "STUB: not implemented"; return }
+func (*UpdateFuncExpr) iExpr()      { _ = "STUB: not implemented"; return }
+func (*CastExpr) iExpr()            { _ = "STUB: not implemented"; return }
+func (*ConvertExpr) iExpr()         { _ = "STUB: not implemented"; return }
+func (*SubstrExpr) iExpr()          { _ = "STUB: not implemented"; return }
+func (*ExtractExpr) iExpr()         { _ = "STUB: not implemented"; return }
+func (*ConvertUsingExpr) iExpr()    { _ = "STUB: not implemented"; return }
+func (*MatchExpr) iExpr()           { _ = "STUB: not implemented"; return }
+func (*GroupConcatExpr) iExpr()     { _ = "STUB: not implemented"; return }
+func (*TrimExpr) iExpr()            { _ = "STUB: not implemented"; return }
+func (*MethodCallExpr) iExpr()      { _ = "STUB: not implemented"; return }
+func (*OverExpr) iExpr()            { _ = "STUB: not implemented"; return }
+func (*Default) iExpr()             { _ = "STUB: not implemented"; return }
+func (*ArrayConstructor) iExpr()    { _ = "STUB: not implemented"; return }
+func (*FuncCallExpr) iExpr()        { _ = "STUB: not implemented"; return }
+func (*NextSeqValExpr) iExpr()      { _ = "STUB: not implemented"; return }
+func (*SuffixExpr) iExpr() {
+	_ = "STUB: not implemented"
 
-// Exprs represents a list of value expressions.
-// It's not a valid expression because it's not parenthesized.
+	// Exprs represents a list of value expressions.
+	// It's not a valid expression because it's not parenthesized.
+	return
+}
+
 type Exprs []Expr
 
 // Format formats the node.
-func (node Exprs) Format(buf *nodeBuffer) {
-	var prefix string
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node Exprs) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // AndExpr represents an AND expression.
 type AndExpr struct {
@@ -1838,9 +1279,7 @@ type AndExpr struct {
 }
 
 // Format formats the node.
-func (node *AndExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v and %v", node.Left, node.Right)
-}
+func (node *AndExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // OrExpr represents an OR expression.
 type OrExpr struct {
@@ -1848,9 +1287,7 @@ type OrExpr struct {
 }
 
 // Format formats the node.
-func (node *OrExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v or %v", node.Left, node.Right)
-}
+func (node *OrExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // NotExpr represents a NOT expression.
 type NotExpr struct {
@@ -1858,9 +1295,7 @@ type NotExpr struct {
 }
 
 // Format formats the node.
-func (node *NotExpr) Format(buf *nodeBuffer) {
-	buf.Printf("not %v", node.Expr)
-}
+func (node *NotExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ParenExpr represents a parenthesized boolean expression.
 type ParenExpr struct {
@@ -1868,9 +1303,7 @@ type ParenExpr struct {
 }
 
 // Format formats the node.
-func (node *ParenExpr) Format(buf *nodeBuffer) {
-	buf.Printf("(%v)", node.Expr)
-}
+func (node *ParenExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ComparisonExpr represents a two-value comparison expression.
 type ComparisonExpr struct {
@@ -1909,33 +1342,9 @@ const (
 )
 
 // Format formats the node.
-func (node *ComparisonExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v %s ", node.Left, node.Operator)
-	if node.All {
-		buf.Printf("ALL ")
-	} else if node.Any {
-		buf.Printf("ANY ")
-	}
+func (node *ComparisonExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
-	// For ALL/ANY/SOME, wrap the right expression in parentheses if it's not already a ParenExpr or Subquery
-	if node.All || node.Any {
-		if _, isParenExpr := node.Right.(*ParenExpr); !isParenExpr {
-			if _, isSubquery := node.Right.(*Subquery); !isSubquery {
-				buf.Printf("(%v)", node.Right)
-			} else {
-				buf.Printf("%v", node.Right)
-			}
-		} else {
-			buf.Printf("%v", node.Right)
-		}
-	} else {
-		buf.Printf("%v", node.Right)
-	}
-
-	if node.Escape != nil {
-		buf.Printf(" escape %v", node.Escape)
-	}
-}
+// For ALL/ANY/SOME, wrap the right expression in parentheses if it's not already a ParenExpr or Subquery
 
 // RangeCond represents a BETWEEN or a NOT BETWEEN expression.
 type RangeCond struct {
@@ -1951,9 +1360,7 @@ const (
 )
 
 // Format formats the node.
-func (node *RangeCond) Format(buf *nodeBuffer) {
-	buf.Printf("%v %s %v and %v", node.Left, node.Operator, node.From, node.To)
-}
+func (node *RangeCond) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // IsExpr represents an IS ... or an IS NOT ... expression.
 type IsExpr struct {
@@ -1974,9 +1381,7 @@ const (
 )
 
 // Format formats the node.
-func (node *IsExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v %s", node.Expr, node.Operator)
-}
+func (node *IsExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ExistsExpr represents an EXISTS expression.
 type ExistsExpr struct {
@@ -1984,9 +1389,7 @@ type ExistsExpr struct {
 }
 
 // Format formats the node.
-func (node *ExistsExpr) Format(buf *nodeBuffer) {
-	buf.Printf("exists %v", node.Subquery)
-}
+func (node *ExistsExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ValType specifies the type for SQLVal.
 type ValType int
@@ -2015,116 +1418,55 @@ type SQLVal struct {
 }
 
 // NewStrVal builds a new StrVal.
-func NewStrVal(in string) *SQLVal {
-	return &SQLVal{Type: StrVal, Val: in}
-}
+func NewStrVal(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // NewIntVal builds a new IntVal.
-func NewIntVal(in string) *SQLVal {
-	return &SQLVal{Type: IntVal, Val: in}
-}
+func NewIntVal(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // NewFloatVal builds a new FloatVal.
-func NewFloatVal(in string) *SQLVal {
-	return &SQLVal{Type: FloatVal, Val: in}
-}
+func NewFloatVal(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // NewHexNum builds a new HexNum.
-func NewHexNum(in string) *SQLVal {
-	return &SQLVal{Type: HexNum, Val: in}
-}
+func NewHexNum(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // NewHexVal builds a new HexVal.
-func NewHexVal(in string) *SQLVal {
-	return &SQLVal{Type: HexVal, Val: in}
-}
+func NewHexVal(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // NewBitVal builds a new BitVal containing a bit literal.
-func NewBitVal(in string) *SQLVal {
-	return &SQLVal{Type: BitVal, Val: in}
-}
+func NewBitVal(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // NewValArg builds a new ValArg.
-func NewValArg(in string) *SQLVal {
-	return &SQLVal{Type: ValArg, Val: in}
-}
+func NewValArg(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
-func NewBoolSQLVal(in bool) *SQLVal {
-	return &SQLVal{Type: ValBool, Val: fmt.Sprintf("%t", in)}
-}
+func NewBoolSQLVal(in bool) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // NewUnicode builds a new UnicodeStrVal.
-func NewUnicodeStrVal(in string) *SQLVal {
-	return &SQLVal{Type: UnicodeStrVal, Val: in}
-}
+func NewUnicodeStrVal(in string) *SQLVal { _ = "STUB: not implemented"; return nil }
 
-func NewValArgWithOpt(in string, opt *SQLVal) *SQLVal {
-	if opt != nil {
-		return NewValArg(fmt.Sprintf("%s(%s)", in, opt.Val))
-	}
-	return NewValArg(in)
-}
+func NewValArgWithOpt(in string, opt *SQLVal) *SQLVal { _ = "STUB: not implemented"; return nil }
 
 // Format formats the node.
-func (node *SQLVal) Format(buf *nodeBuffer) {
-	switch node.Type {
-	case StrVal:
-		encodeSQLBytes(node.Val, buf)
-	case UnicodeStrVal:
-		buf.WriteRune('N')
-		encodeSQLBytes(node.Val, buf)
-	case IntVal, FloatVal, HexNum:
-		buf.Printf("%s", node.Val)
-	case HexVal:
-		buf.Printf("X'%s'", node.Val)
-	case BitVal:
-		buf.Printf("B'%s'", node.Val)
-	case ValArg:
-		buf.WriteString(node.Val)
-	case ValBool:
-		buf.WriteString(node.Val)
-	default:
-		panic("unexpected")
-	}
-}
+func (node *SQLVal) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
-func encodeSQLBytes(val string, buf *nodeBuffer) {
-	buf.WriteByte('\'')
-	for _, ch := range val {
-		if encodedChar := sqlEncodeMap[byte(ch)]; encodedChar == dontEscape {
-			buf.WriteRune(ch)
-		} else {
-			buf.WriteByte('\\')
-			buf.WriteByte(encodedChar)
-		}
-	}
-	buf.WriteByte('\'')
-}
+func encodeSQLBytes(val string, buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // NullVal represents a NULL value.
 type NullVal struct{}
 
 // Format formats the node.
 func (node *NullVal) Format(buf *nodeBuffer) {
-	buf.Printf("null")
+	_ = "STUB: not implemented"
+
+	// BoolVal is true or false.
+	return
 }
 
-// BoolVal is true or false.
 type BoolVal bool
 
-func NewBoolVal(flag bool) *BoolVal {
-	val := BoolVal(flag)
-	return &val
-}
+func NewBoolVal(flag bool) *BoolVal { _ = "STUB: not implemented"; return nil }
 
 // Format formats the node.
-func (node BoolVal) Format(buf *nodeBuffer) {
-	if node {
-		buf.Printf("true")
-	} else {
-		buf.Printf("false")
-	}
-}
+func (node BoolVal) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ColName represents a column name.
 type ColName struct {
@@ -2138,12 +1480,7 @@ type ColName struct {
 }
 
 // Format formats the node.
-func (node *ColName) Format(buf *nodeBuffer) {
-	if !node.Qualifier.IsEmpty() {
-		buf.Printf("%v.", node.Qualifier)
-	}
-	buf.Printf("%v", node.Name)
-}
+func (node *ColName) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // NewQualifierColName represents a column name with NEW qualifier.
 type NewQualifierColName struct {
@@ -2152,8 +1489,9 @@ type NewQualifierColName struct {
 
 // Format formats the node.
 func (node *NewQualifierColName) Format(buf *nodeBuffer) {
+	_ = "STUB: not implemented"
 	// We don't have to backtick NEW qualifier.
-	buf.Printf("NEW.%s", node.Name.Name)
+	return
 }
 
 // ColTuple represents a list of column values.
@@ -2163,17 +1501,19 @@ type ColTuple interface {
 	Expr
 }
 
-func (ValTuple) iColTuple()  {}
-func (*Subquery) iColTuple() {}
-func (ListArg) iColTuple()   {}
+func (ValTuple) iColTuple()  { _ = "STUB: not implemented"; return }
+func (*Subquery) iColTuple() { _ = "STUB: not implemented"; return }
+func (ListArg) iColTuple() {
+	_ = "STUB: not implemented"
 
-// ValTuple represents a tuple of actual values.
+	// ValTuple represents a tuple of actual values.
+	return
+}
+
 type ValTuple Exprs
 
 // Format formats the node.
-func (node ValTuple) Format(buf *nodeBuffer) {
-	buf.Printf("(%v)", Exprs(node))
-}
+func (node ValTuple) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Subquery represents a subquery.
 type Subquery struct {
@@ -2181,17 +1521,13 @@ type Subquery struct {
 }
 
 // Format formats the node.
-func (node *Subquery) Format(buf *nodeBuffer) {
-	buf.Printf("(%v)", node.Select)
-}
+func (node *Subquery) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ListArg represents a named list argument.
 type ListArg []byte
 
 // Format formats the node.
-func (node ListArg) Format(buf *nodeBuffer) {
-	buf.WriteString(string(node))
-}
+func (node ListArg) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // BinaryExpr represents a binary value expression.
 type BinaryExpr struct {
@@ -2215,9 +1551,7 @@ const (
 )
 
 // Format formats the node.
-func (node *BinaryExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v %s %v", node.Left, node.Operator, node.Right)
-}
+func (node *BinaryExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // UnaryExpr represents a unary value expression.
 type UnaryExpr struct {
@@ -2236,13 +1570,7 @@ const (
 )
 
 // Format formats the node.
-func (node *UnaryExpr) Format(buf *nodeBuffer) {
-	if _, unary := node.Expr.(*UnaryExpr); unary {
-		buf.Printf("%s %v", node.Operator, node.Expr)
-		return
-	}
-	buf.Printf("%s%v", node.Operator, node.Expr)
-}
+func (node *UnaryExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // IntervalExpr represents a date-time INTERVAL expression.
 type IntervalExpr struct {
@@ -2251,9 +1579,7 @@ type IntervalExpr struct {
 }
 
 // Format formats the node.
-func (node *IntervalExpr) Format(buf *nodeBuffer) {
-	buf.Printf("interval %v %s", node.Expr, node.Unit)
-}
+func (node *IntervalExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // TypedLiteral represents a typed literal like DATE '2022-01-01' or TIMESTAMP '2022-01-01'.
 type TypedLiteral struct {
@@ -2262,9 +1588,7 @@ type TypedLiteral struct {
 }
 
 // Format formats the node.
-func (node *TypedLiteral) Format(buf *nodeBuffer) {
-	buf.Printf("%s %v", node.Type, node.Value)
-}
+func (node *TypedLiteral) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // CollateExpr represents dynamic collate operator.
 type CollateExpr struct {
@@ -2273,9 +1597,7 @@ type CollateExpr struct {
 }
 
 // Format formats the node.
-func (node *CollateExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v collate \"%s\"", node.Expr, node.Charset)
-}
+func (node *CollateExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // FuncExpr represents a function call that takes SelectExprs.
 type FuncExpr struct {
@@ -2288,25 +1610,11 @@ type FuncExpr struct {
 }
 
 // Format formats the node.
-func (node *FuncExpr) Format(buf *nodeBuffer) {
-	var distinct string
-	if node.Distinct {
-		distinct = "distinct "
-	}
-	if !node.Qualifier.IsEmpty() {
-		buf.Printf("%v.", node.Qualifier)
-	}
-	// Function names should not be back-quoted even
-	// if they match a reserved word. So, print the
-	// name as is.
-	buf.Printf("%s(%s%v)", node.Name.Name, distinct, node.Exprs)
-	if len(node.WithinGroup) > 0 {
-		buf.Printf(" within group(")
-		node.WithinGroup.Format(buf)
-		buf.Printf(")")
-	}
-	buf.Printf("%v", node.Over)
-}
+func (node *FuncExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
+
+// Function names should not be back-quoted even
+// if they match a reserved word. So, print the
+// name as is.
 
 // FuncCallExpr represents a function call that takes Exprs.
 type FuncCallExpr struct {
@@ -2315,10 +1623,11 @@ type FuncCallExpr struct {
 }
 
 func (node *FuncCallExpr) Format(buf *nodeBuffer) {
+	_ = "STUB: not implemented"
 	// Function names should not be back-quoted even
 	// if they match a reserved word. So, print the
 	// name as is.
-	buf.Printf("%s(%v)", node.Name.Name, node.Exprs)
+	return
 }
 
 // GroupConcatExpr represents a call to GROUP_CONCAT
@@ -2330,9 +1639,7 @@ type GroupConcatExpr struct {
 }
 
 // Format formats the node
-func (node *GroupConcatExpr) Format(buf *nodeBuffer) {
-	buf.Printf("group_concat(%s%v%v%s)", node.Distinct, node.Exprs, node.OrderBy, node.Separator)
-}
+func (node *GroupConcatExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // OverExpr represents a call to OVER
 type OverExpr struct {
@@ -2341,12 +1648,7 @@ type OverExpr struct {
 }
 
 // Format formats the node
-func (node *OverExpr) Format(buf *nodeBuffer) {
-	if node == nil {
-		return
-	}
-	buf.Printf(" over(%v%v)", node.PartitionBy, node.OrderBy)
-}
+func (node *OverExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ValuesFuncExpr represents a function call.
 type ValuesFuncExpr struct {
@@ -2354,9 +1656,7 @@ type ValuesFuncExpr struct {
 }
 
 // Format formats the node.
-func (node *ValuesFuncExpr) Format(buf *nodeBuffer) {
-	buf.Printf("values(%v)", node.Name)
-}
+func (node *ValuesFuncExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // UpdateFuncExpr represents a function call.
 type UpdateFuncExpr struct {
@@ -2364,13 +1664,7 @@ type UpdateFuncExpr struct {
 }
 
 // Format formats the node.
-func (node *UpdateFuncExpr) Format(buf *nodeBuffer) {
-	if node.Name == nil {
-		buf.Printf("COLUMNS_UPDATED()")
-	} else {
-		buf.Printf("UPDATE(%v)", node.Name)
-	}
-}
+func (node *UpdateFuncExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // SubstrExpr represents a call to SubstrExpr(column, value_expression) or SubstrExpr(column, value_expression,value_expression)
 // also supported syntax SubstrExpr(column from value_expression for value_expression)
@@ -2381,13 +1675,7 @@ type SubstrExpr struct {
 }
 
 // Format formats the node.
-func (node *SubstrExpr) Format(buf *nodeBuffer) {
-	if node.To == nil {
-		buf.Printf("substr(%v, %v)", node.Name, node.From)
-	} else {
-		buf.Printf("substr(%v, %v, %v)", node.Name, node.From, node.To)
-	}
-}
+func (node *SubstrExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // TrimExpr represents a TRIM expression.
 type TrimExpr struct {
@@ -2396,13 +1684,7 @@ type TrimExpr struct {
 }
 
 // Format formats the node.
-func (node *TrimExpr) Format(buf *nodeBuffer) {
-	if node.TrimChar == nil {
-		buf.Printf("trim(%v)", node.String)
-		return
-	}
-	buf.Printf("trim(%v from %v)", node.TrimChar, node.String)
-}
+func (node *TrimExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // MethodCallExpr represents a SQL Server method call on an expression.
 type MethodCallExpr struct {
@@ -2411,9 +1693,7 @@ type MethodCallExpr struct {
 	Exprs    Exprs
 }
 
-func (node *MethodCallExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v.%s(%v)", node.Receiver, node.Name.Name, node.Exprs)
-}
+func (node *MethodCallExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ExtractExpr represents EXTRACT(field FROM source)
 type ExtractExpr struct {
@@ -2422,9 +1702,7 @@ type ExtractExpr struct {
 }
 
 // Format formats the node.
-func (node *ExtractExpr) Format(buf *nodeBuffer) {
-	buf.Printf("EXTRACT(%s FROM %v)", node.Field, node.Source)
-}
+func (node *ExtractExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // CastExpr represents expr::type
 type CastExpr struct {
@@ -2432,9 +1710,7 @@ type CastExpr struct {
 	Type *ConvertType
 }
 
-func (node *CastExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v::%v", node.Expr, node.Type)
-}
+func (node *CastExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Convert types
 const (
@@ -2452,25 +1728,7 @@ type ConvertExpr struct {
 	Style  Expr
 }
 
-func (node *ConvertExpr) Format(buf *nodeBuffer) {
-	switch node.Action {
-	case CastStr:
-		buf.Printf("cast(%v as %v)", node.Expr, node.Type)
-		return
-	case TryCastStr:
-		buf.Printf("try_cast(%v as %v)", node.Expr, node.Type)
-		return
-	case Type1stStr:
-		if node.Style != nil {
-			buf.Printf("convert(%v, %v, %v)", node.Type, node.Expr, node.Style)
-			return
-		}
-		buf.Printf("convert(%v, %v)", node.Type, node.Expr)
-		return
-	default:
-		buf.Printf("convert(%v, %v)", node.Expr, node.Type)
-	}
-}
+func (node *ConvertExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ConvertUsingExpr represents a call to CONVERT(expr USING charset).
 type ConvertUsingExpr struct {
@@ -2478,9 +1736,7 @@ type ConvertUsingExpr struct {
 	Type string
 }
 
-func (node *ConvertUsingExpr) Format(buf *nodeBuffer) {
-	buf.Printf("convert(%v using %s)", node.Expr, node.Type)
-}
+func (node *ConvertUsingExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // ConvertType represents the type in call to CONVERT(expr, type)
 type ConvertType struct {
@@ -2497,19 +1753,7 @@ const (
 )
 
 // Format formats the node.
-func (node *ConvertType) Format(buf *nodeBuffer) {
-	buf.Printf("%s", node.Type)
-	if node.Length != nil {
-		buf.Printf("(%v", node.Length)
-		if node.Scale != nil {
-			buf.Printf(", %v", node.Scale)
-		}
-		buf.Printf(")")
-	}
-	if node.Charset != "" {
-		buf.Printf("%s %s", node.Operator, node.Charset)
-	}
-}
+func (node *ConvertType) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // MatchExpr represents a call to the MATCH function
 type MatchExpr struct {
@@ -2527,9 +1771,7 @@ const (
 )
 
 // Format formats the node
-func (node *MatchExpr) Format(buf *nodeBuffer) {
-	buf.Printf("match(%v) against (%v%s)", node.Columns, node.Expr, node.Option)
-}
+func (node *MatchExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // CaseExpr represents a CASE expression.
 type CaseExpr struct {
@@ -2539,19 +1781,7 @@ type CaseExpr struct {
 }
 
 // Format formats the node.
-func (node *CaseExpr) Format(buf *nodeBuffer) {
-	buf.Printf("case ")
-	if node.Expr != nil {
-		buf.Printf("%v ", node.Expr)
-	}
-	for _, when := range node.Whens {
-		buf.Printf("%v ", when)
-	}
-	if node.Else != nil {
-		buf.Printf("else %v ", node.Else)
-	}
-	buf.Printf("end")
-}
+func (node *CaseExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Default represents a DEFAULT expression.
 type Default struct {
@@ -2559,12 +1789,7 @@ type Default struct {
 }
 
 // Format formats the node.
-func (node *Default) Format(buf *nodeBuffer) {
-	buf.Printf("default")
-	if node.ColName != "" {
-		buf.Printf("(%s)", node.ColName)
-	}
-}
+func (node *Default) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // NextSeqVal represents a NEXT VALUE FOR expression in SQL Server.
 type NextSeqValExpr struct {
@@ -2572,9 +1797,7 @@ type NextSeqValExpr struct {
 }
 
 // Format formats the node.
-func (node *NextSeqValExpr) Format(buf *nodeBuffer) {
-	buf.Printf("next value for %v", node.SequenceName)
-}
+func (node *NextSeqValExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // When represents a WHEN sub-expression.
 type When struct {
@@ -2583,33 +1806,19 @@ type When struct {
 }
 
 // Format formats the node.
-func (node *When) Format(buf *nodeBuffer) {
-	buf.Printf("when %v then %v", node.Cond, node.Val)
-}
+func (node *When) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // GroupBy represents a GROUP BY clause.
 type GroupBy []Expr
 
 // Format formats the node.
-func (node GroupBy) Format(buf *nodeBuffer) {
-	prefix := " group by "
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node GroupBy) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // OrderBy represents an ORDER By clause.
 type OrderBy []*Order
 
 // Format formats the node.
-func (node OrderBy) Format(buf *nodeBuffer) {
-	prefix := " order by "
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node OrderBy) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Order represents an ordering expression.
 type Order struct {
@@ -2630,32 +1839,13 @@ const (
 )
 
 // Format formats the node.
-func (node *Order) Format(buf *nodeBuffer) {
-	if node, ok := node.Expr.(*NullVal); ok {
-		buf.Printf("%v", node)
-		return
-	}
-	if node, ok := node.Expr.(*FuncExpr); ok {
-		if node.Name.equalString("rand") {
-			buf.Printf("%v", node)
-			return
-		}
-	}
-
-	buf.Printf("%v %s", node.Expr, node.Direction)
-}
+func (node *Order) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // PartitionBy represents a PARTITION BY clause.
 type PartitionBy []*Partition
 
 // Format formats the node.
-func (node PartitionBy) Format(buf *nodeBuffer) {
-	prefix := "partition by "
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node PartitionBy) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Partition represents an partitions expression.
 type Partition struct {
@@ -2663,12 +1853,7 @@ type Partition struct {
 }
 
 // Format formats the node.
-func (node *Partition) Format(buf *nodeBuffer) {
-	if node == nil {
-		return
-	}
-	buf.Printf("%v", node.Expr)
-}
+func (node *Partition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Limit represents a LIMIT clause.
 type Limit struct {
@@ -2676,40 +1861,19 @@ type Limit struct {
 }
 
 // Format formats the node.
-func (node *Limit) Format(buf *nodeBuffer) {
-	if node == nil {
-		return
-	}
-	buf.Printf(" limit ")
-	if node.Offset != nil {
-		buf.Printf("%v, ", node.Offset)
-	}
-	buf.Printf("%v", node.Rowcount)
-}
+func (node *Limit) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Values represents a VALUES clause.
 type Values []ValTuple
 
 // Format formats the node.
-func (node Values) Format(buf *nodeBuffer) {
-	prefix := "values "
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node Values) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // UpdateExprs represents a list of update expressions.
 type UpdateExprs []*UpdateExpr
 
 // Format formats the node.
-func (node UpdateExprs) Format(buf *nodeBuffer) {
-	var prefix string
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node UpdateExprs) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // UpdateExpr represents an update expression.
 type UpdateExpr struct {
@@ -2718,21 +1882,13 @@ type UpdateExpr struct {
 }
 
 // Format formats the node.
-func (node *UpdateExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v = %v", node.Name, node.Expr)
-}
+func (node *UpdateExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // SetExprs represents a list of set expressions.
 type SetExprs []*SetExpr
 
 // Format formats the node.
-func (node SetExprs) Format(buf *nodeBuffer) {
-	var prefix string
-	for _, n := range node {
-		buf.Printf("%s%v", prefix, n)
-		prefix = ", "
-	}
-}
+func (node SetExprs) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // SetExpr represents a set expression.
 type SetExpr struct {
@@ -2742,24 +1898,16 @@ type SetExpr struct {
 
 // Format formats the node.
 func (node *SetExpr) Format(buf *nodeBuffer) {
+	_ = "STUB: not implemented"
 	// We don't have to backtick set variable names.
-	if node.Name.equalString("charset") || node.Name.equalString("names") {
-		buf.Printf("%s %v", node.Name.Name, node.Expr)
-	} else {
-		buf.Printf("%s = %v", node.Name.Name, node.Expr)
-	}
+	return
 }
 
 // OnDup represents an ON DUPLICATE KEY clause.
 type OnDup UpdateExprs
 
 // Format formats the node.
-func (node OnDup) Format(buf *nodeBuffer) {
-	if node == nil {
-		return
-	}
-	buf.Printf(" on duplicate key update %v", UpdateExprs(node))
-}
+func (node OnDup) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // SuffixExpr represents Suffix operator like a 'OUTPUT'.
 type SuffixExpr struct {
@@ -2768,9 +1916,7 @@ type SuffixExpr struct {
 }
 
 // Format formats the node.
-func (node *SuffixExpr) Format(buf *nodeBuffer) {
-	buf.Printf("%v %s", node.Expr, node.Suffix)
-}
+func (node *SuffixExpr) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type DeclareType int
 
@@ -2787,30 +1933,14 @@ type Declare struct {
 	Handler   *HandlerDefinition
 }
 
-func (node *Declare) Format(buf *nodeBuffer) {
-	var prefix string
-	buf.Printf("declare\n")
-	switch node.Type {
-	case declareVariable:
-		for _, n := range node.Variables {
-			buf.Printf("%s%v", prefix, n)
-			prefix = ",\n"
-		}
-	case declareCursor:
-		buf.Printf("%v", node.Cursor)
-	case declareHandler:
-		buf.Printf("%v", node.Handler)
-	}
-}
+func (node *Declare) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type LocalVariable struct {
 	Name     Ident
 	DataType ColumnType
 }
 
-func (node *LocalVariable) Format(buf *nodeBuffer) {
-	buf.Printf("%v %v", node.Name, &node.DataType)
-}
+func (node *LocalVariable) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type CursorDefinition struct {
 	Name   Ident
@@ -2818,13 +1948,7 @@ type CursorDefinition struct {
 	Select SelectStatement
 }
 
-func (node *CursorDefinition) Format(buf *nodeBuffer) {
-	var scrollStr string
-	if node.Scroll {
-		scrollStr = " scroll"
-	}
-	buf.Printf("%v%s cursor for\n%v", node.Name, scrollStr, node.Select)
-}
+func (node *CursorDefinition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type HandlerConditionType int
 
@@ -2842,23 +1966,9 @@ type HandlerCondition struct {
 	Value string
 }
 
-func (node *HandlerCondition) Format(buf *nodeBuffer) {
-	switch node.Type {
-	case handlerConditionMysqlErrorCode:
-		buf.Printf("%s", node.Value)
-	case handlerConditionSqlstate:
-		// SQLSTATE value must be quoted in output
-		buf.Printf("sqlstate '%s'", node.Value)
-	case handlerConditionSqlwarning:
-		buf.Printf("sqlwarning")
-	case handlerConditionNotFound:
-		buf.Printf("not found")
-	case handlerConditionSqlexception:
-		buf.Printf("sqlexception")
-	case handlerConditionName:
-		buf.Printf("%s", node.Value)
-	}
-}
+func (node *HandlerCondition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
+
+// SQLSTATE value must be quoted in output
 
 type HandlerDefinition struct {
 	Action     string
@@ -2866,16 +1976,7 @@ type HandlerDefinition struct {
 	Statement  Statement
 }
 
-func (node *HandlerDefinition) Format(buf *nodeBuffer) {
-	buf.Printf("%s handler for ", node.Action)
-	for i, cond := range node.Conditions {
-		if i > 0 {
-			buf.Printf(", ")
-		}
-		buf.Printf("%v", &cond)
-	}
-	buf.Printf("\n%v", node.Statement)
-}
+func (node *HandlerDefinition) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 const (
 	OpenStr       = "open"
@@ -2891,54 +1992,21 @@ type Cursor struct {
 	Into       []Ident
 }
 
-func (node *Cursor) Format(buf *nodeBuffer) {
-	if node.Action == FetchStr {
-		fetch := " "
-		if node.Fetch != "" {
-			fetch = fmt.Sprintf(" %s from", node.Fetch)
-		}
-		buf.Printf("%s%s %v", node.Action, fetch, node.CursorName)
-		if node.Into != nil {
-			prefix := " into "
-			for _, c := range node.Into {
-				buf.Printf("%s%s", prefix, strings.ToLower(c.Name))
-				prefix = ", "
-			}
-		}
-	} else {
-		buf.Printf("%s %v", node.Action, node.CursorName)
-	}
-}
+func (node *Cursor) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type BeginEnd struct {
 	Statements        []Statement
 	SuppressSemicolon bool
 }
 
-func (node *BeginEnd) Format(buf *nodeBuffer) {
-	semicolon := ";"
-	if node.SuppressSemicolon {
-		semicolon = ""
-	}
-
-	buf.Printf("begin")
-	for _, stmt := range node.Statements {
-		buf.Printf("\n%v%s", stmt, semicolon)
-	}
-	buf.Printf("\nend")
-}
+func (node *BeginEnd) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type While struct {
 	Condition  Expr
 	Statements []Statement
 }
 
-func (node *While) Format(buf *nodeBuffer) {
-	buf.Printf("while %v", node.Condition)
-	for _, stmt := range node.Statements {
-		buf.Printf("\n%v", stmt)
-	}
-}
+func (node *While) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 type If struct {
 	Condition      Expr
@@ -2947,43 +2015,15 @@ type If struct {
 	Keyword        string
 }
 
-func (node *If) Format(buf *nodeBuffer) {
-	buf.Printf("if %v", node.Condition)
-	// MSSQL
-	if node.Keyword == "Mssql" {
-		for i, stmt := range node.IfStatements {
-			buf.Printf("\n%v", stmt)
-			// avoid adding a semicolon after the last statement
-			if i != len(node.IfStatements)-1 {
-				buf.Printf(";")
-			}
-		}
-		if node.ElseStatements != nil {
-			// need end and begin for else
-			buf.Printf("\nelse")
-			for i, stmt := range node.ElseStatements {
-				buf.Printf("\n%v", stmt)
-				// avoid adding a semicolon after the last statement
-				if i != len(node.ElseStatements)-1 {
-					buf.Printf(";")
-				}
-			}
-		}
-		return
-	}
+func (node *If) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
-	buf.Printf(" then")
-	for _, stmt := range node.IfStatements {
-		buf.Printf("\n%v;", stmt)
-	}
-	if node.ElseStatements != nil {
-		buf.Printf("\nelse")
-		for _, stmt := range node.ElseStatements {
-			buf.Printf("\n%v;", stmt)
-		}
-	}
-	buf.Printf("\nend if")
-}
+// MSSQL
+
+// avoid adding a semicolon after the last statement
+
+// need end and begin for else
+
+// avoid adding a semicolon after the last statement
 
 // Ident represents a SQL identifier with its original name and quote status.
 // This is used to track whether an identifier was quoted in the source SQL,
@@ -2994,62 +2034,27 @@ type Ident struct {
 }
 
 // NewIdent creates a new Ident.
-func NewIdent(name string, quoted bool) Ident {
-	return Ident{Name: name, Quoted: quoted}
-}
+func NewIdent(name string, quoted bool) Ident { _ = "STUB: not implemented"; return *new(Ident) }
 
 // IsEmpty returns true if the name is empty.
-func (n Ident) IsEmpty() bool {
-	return n.Name == ""
-}
+func (n Ident) IsEmpty() bool { _ = "STUB: not implemented"; return false }
 
 // Format formats the node for SQL generation.
-func (n Ident) Format(buf *nodeBuffer) {
-	formatID(buf, n.Name)
-}
+func (n Ident) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // equalString performs a case-insensitive compare with str.
-func (n Ident) equalString(str string) bool {
-	return strings.EqualFold(n.Name, str)
-}
+func (n Ident) equalString(str string) bool { _ = "STUB: not implemented"; return false }
 
-func formatID(buf *nodeBuffer, original string) {
-	isDbSystemVariable := false
-	if len(original) > 1 && original[:2] == "@@" {
-		isDbSystemVariable = true
-	}
-
-	for i, c := range original {
-		if !isIdentifierFirstChar(c) && (!isDbSystemVariable || !isIdentifierMetaChar(c)) {
-			if i == 0 || !isAsciiDigit(c) {
-				goto mustEscape
-			}
-		}
-	}
-	buf.Printf("%s", original)
-	return
-
-mustEscape:
-	buf.WriteByte('`')
-	for _, c := range original {
-		buf.WriteRune(c)
-		if c == '`' {
-			buf.WriteByte('`')
-		}
-	}
-	buf.WriteByte('`')
-}
+func formatID(buf *nodeBuffer, original string) { _ = "STUB: not implemented"; return }
 
 type ArrayConstructor struct {
 	Elements Exprs
 }
 
-func (node *ArrayConstructor) Format(buf *nodeBuffer) {
-	buf.Printf("ARRAY[%v]", node.Elements)
-}
+func (node *ArrayConstructor) Format(buf *nodeBuffer) { _ = "STUB: not implemented"; return }
 
 // Ignored node
 type Ignore struct{}
 
-func (*Ignore) iStatement()        {}
-func (*Ignore) Format(*nodeBuffer) {}
+func (*Ignore) iStatement()        { _ = "STUB: not implemented"; return }
+func (*Ignore) Format(*nodeBuffer) { _ = "STUB: not implemented"; return }

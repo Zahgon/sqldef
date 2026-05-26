@@ -3,41 +3,21 @@ package util
 import (
 	"cmp"
 	"iter"
-	"slices"
 )
 
 // TransformSlice applies the converter to each element in the input slice and returns a new slice.
 func TransformSlice[T any, R any](in []T, converter func(T) R) []R {
-	out := make([]R, len(in))
-	for i, v := range in {
-		out[i] = converter(v)
-	}
-	return out
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // CanonicalMapIter returns an iterator that yields map entries in sorted key order.
 // This ensures deterministic iteration over maps, which is useful for generating
 // consistent output (e.g., DDL statements) regardless of Go's random map iteration order.
 func CanonicalMapIter[T any](m map[string]T) iter.Seq2[string, T] {
-	return func(yield func(string, T) bool) {
-		keys := make([]string, 0, len(m))
-		for k := range m {
-			keys = append(keys, k)
-		}
-		slices.Sort(keys)
-
-		for _, k := range keys {
-			if !yield(k, m[k]) {
-				return
-			}
-		}
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // SortedCopy returns a sorted copy of the input slice without modifying the original.
-func SortedCopy[T cmp.Ordered](in []T) []T {
-	out := make([]T, len(in))
-	copy(out, in)
-	slices.Sort(out)
-	return out
-}
+func SortedCopy[T cmp.Ordered](in []T) []T { _ = "STUB: not implemented"; return nil }

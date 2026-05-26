@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"database/sql/driver"
-	"fmt"
 )
 
 type DryRunDatabase struct {
@@ -13,65 +12,46 @@ type DryRunDatabase struct {
 }
 
 func NewDryRunDatabase(db Database) (*DryRunDatabase, error) {
-	txQueries := db.GetTransactionQueries()
-
-	dryRunDriverName := fmt.Sprintf("dry-run-%p", db) // Unique name per database instance
-	sql.Register(dryRunDriverName, &dryRunDriver{txQueries: txQueries})
-
-	dryRunDB, err := sql.Open(dryRunDriverName, "dry-run")
-	if err != nil {
-		return nil, err
-	}
-
-	return &DryRunDatabase{
-		wrapped:  db,
-		dryRunDB: dryRunDB,
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
-func (d *DryRunDatabase) ExportDDLs() (string, error) {
-	return d.wrapped.ExportDDLs()
-}
+// Unique name per database instance
 
-func (d *DryRunDatabase) DB() *sql.DB {
-	return d.dryRunDB
-}
+func (d *DryRunDatabase) ExportDDLs() (string, error) { _ = "STUB: not implemented"; return "", nil }
 
-func (d *DryRunDatabase) Close() error {
-	if err := d.dryRunDB.Close(); err != nil {
-		return err
-	}
-	return d.wrapped.Close()
-}
+func (d *DryRunDatabase) DB() *sql.DB { _ = "STUB: not implemented"; return nil }
 
-func (d *DryRunDatabase) GetDefaultSchema() string {
-	return d.wrapped.GetDefaultSchema()
-}
+func (d *DryRunDatabase) Close() error { _ = "STUB: not implemented"; return nil }
+
+func (d *DryRunDatabase) GetDefaultSchema() string { _ = "STUB: not implemented"; return "" }
 
 func (d *DryRunDatabase) SetGeneratorConfig(config GeneratorConfig) {
-	d.wrapped.SetGeneratorConfig(config)
-	// Get the config back from wrapped in case it was modified (e.g., MySQL adds lowerCaseTableNames)
-	d.generatorConfig = d.wrapped.GetGeneratorConfig()
+	_ = "STUB: not implemented"
+	return
 }
 
+// Get the config back from wrapped in case it was modified (e.g., MySQL adds lowerCaseTableNames)
+
 func (d *DryRunDatabase) GetGeneratorConfig() GeneratorConfig {
-	return d.generatorConfig
+	_ = "STUB: not implemented"
+	return *new(GeneratorConfig)
 }
 
 func (d *DryRunDatabase) GetTransactionQueries() TransactionQueries {
-	return d.wrapped.GetTransactionQueries()
+	_ = "STUB: not implemented"
+	return *new(TransactionQueries)
 }
 
-func (d *DryRunDatabase) GetConfig() Config {
-	return d.wrapped.GetConfig()
-}
+func (d *DryRunDatabase) GetConfig() Config { _ = "STUB: not implemented"; return *new(Config) }
 
 type dryRunDriver struct {
 	txQueries TransactionQueries
 }
 
 func (d *dryRunDriver) Open(name string) (driver.Conn, error) {
-	return &dryRunConn{txQueries: d.txQueries}, nil
+	_ = "STUB: not implemented"
+	return *new(driver.Conn), nil
 }
 
 type dryRunConn struct {
@@ -79,72 +59,55 @@ type dryRunConn struct {
 }
 
 func (c *dryRunConn) Prepare(query string) (driver.Stmt, error) {
-	return &dryRunStmt{query: query}, nil
+	_ = "STUB: not implemented"
+	return *new(driver.Stmt), nil
 }
 
-func (c *dryRunConn) Close() error {
-	return nil
-}
+func (c *dryRunConn) Close() error { _ = "STUB: not implemented"; return nil }
 
 func (c *dryRunConn) Begin() (driver.Tx, error) {
-	return &dryRunTx{txQueries: c.txQueries}, nil
+	_ = "STUB: not implemented"
+	return *new(driver.Tx), nil
 }
 
 type dryRunTx struct {
 	txQueries TransactionQueries
 }
 
-func (tx *dryRunTx) Commit() error {
-	return nil
-}
+func (tx *dryRunTx) Commit() error { _ = "STUB: not implemented"; return nil }
 
-func (tx *dryRunTx) Rollback() error {
-	return nil
-}
+func (tx *dryRunTx) Rollback() error { _ = "STUB: not implemented"; return nil }
 
 type dryRunStmt struct {
 	query string
 }
 
-func (s *dryRunStmt) Close() error {
-	return nil
-}
+func (s *dryRunStmt) Close() error { _ = "STUB: not implemented"; return nil }
 
-func (s *dryRunStmt) NumInput() int {
-	return -1
-}
+func (s *dryRunStmt) NumInput() int { _ = "STUB: not implemented"; return 0 }
 
 func (s *dryRunStmt) Exec(args []driver.Value) (driver.Result, error) {
-	return &dryRunResult{}, nil
+	_ = "STUB: not implemented"
+	return *new(driver.Result), nil
 }
 
 func (s *dryRunStmt) Query(args []driver.Value) (driver.Rows, error) {
-	return &dryRunRows{closed: false}, nil
+	_ = "STUB: not implemented"
+	return *new(driver.Rows), nil
 }
 
 type dryRunResult struct{}
 
-func (r *dryRunResult) LastInsertId() (int64, error) {
-	return 0, nil
-}
+func (r *dryRunResult) LastInsertId() (int64, error) { _ = "STUB: not implemented"; return 0, nil }
 
-func (r *dryRunResult) RowsAffected() (int64, error) {
-	return 0, nil
-}
+func (r *dryRunResult) RowsAffected() (int64, error) { _ = "STUB: not implemented"; return 0, nil }
 
 type dryRunRows struct {
 	closed bool
 }
 
-func (r *dryRunRows) Columns() []string {
-	return []string{}
-}
+func (r *dryRunRows) Columns() []string { _ = "STUB: not implemented"; return nil }
 
-func (r *dryRunRows) Close() error {
-	r.closed = true
-	return nil
-}
+func (r *dryRunRows) Close() error { _ = "STUB: not implemented"; return nil }
 
-func (r *dryRunRows) Next(dest []driver.Value) error {
-	return fmt.Errorf("EOF")
-}
+func (r *dryRunRows) Next(dest []driver.Value) error { _ = "STUB: not implemented"; return nil }

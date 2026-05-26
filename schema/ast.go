@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"strings"
-
 	"github.com/sqldef/sqldef/v3/database"
 	"github.com/sqldef/sqldef/v3/parser"
 )
@@ -24,27 +22,13 @@ var (
 // For PostgreSQL in quote-aware mode: unquoted identifiers are normalized to lowercase.
 // For other databases: always uses case-insensitive comparison.
 func identsEqual(a, b Ident, mode GeneratorMode, legacyIgnoreQuotes bool) bool {
-	if legacyIgnoreQuotes {
-		return strings.EqualFold(a.Name, b.Name)
-	}
-
-	switch mode {
-	case GeneratorModePostgres:
-		// Quote-aware comparison: normalize unquoted identifiers to lowercase
-		aName := a.Name
-		bName := b.Name
-		if !a.Quoted {
-			aName = strings.ToLower(aName)
-		}
-		if !b.Quoted {
-			bName = strings.ToLower(bName)
-		}
-		return aName == bName
-	default:
-		// MySQL/MSSQL/SQLite3: always case-insensitive for non-table identifiers
-		return strings.EqualFold(a.Name, b.Name)
-	}
+	_ = "STUB: not implemented"
+	return false
 }
+
+// Quote-aware comparison: normalize unquoted identifiers to lowercase
+
+// MySQL/MSSQL/SQLite3: always case-insensitive for non-table identifiers
 
 // tableIdentsEqual compares two table/schema name Idents with quote-awareness.
 // This respects MySQL's lower_case_table_names setting which only affects table names.
@@ -56,50 +40,23 @@ func identsEqual(a, b Ident, mode GeneratorMode, legacyIgnoreQuotes bool) bool {
 // For PostgreSQL in quote-aware mode: unquoted identifiers are normalized to lowercase.
 // For other databases: always uses case-insensitive comparison.
 func tableIdentsEqual(a, b Ident, mode GeneratorMode, legacyIgnoreQuotes bool, mysqlLowerCaseTableNames int) bool {
-	if legacyIgnoreQuotes {
-		return strings.EqualFold(a.Name, b.Name)
-	}
-
-	switch mode {
-	case GeneratorModeMysql:
-		if mysqlLowerCaseTableNames == 0 {
-			// Case-sensitive: exact match required
-			return a.Name == b.Name
-		}
-		// Case-insensitive (1 or 2)
-		return strings.EqualFold(a.Name, b.Name)
-	case GeneratorModePostgres:
-		// Quote-aware comparison: normalize unquoted identifiers to lowercase
-		aName := a.Name
-		bName := b.Name
-		if !a.Quoted {
-			aName = strings.ToLower(aName)
-		}
-		if !b.Quoted {
-			bName = strings.ToLower(bName)
-		}
-		return aName == bName
-	default:
-		// MSSQL/SQLite3: always case-insensitive
-		return strings.EqualFold(a.Name, b.Name)
-	}
+	_ = "STUB: not implemented"
+	return false
 }
+
+// Case-sensitive: exact match required
+
+// Case-insensitive (1 or 2)
+
+// Quote-aware comparison: normalize unquoted identifiers to lowercase
+
+// MSSQL/SQLite3: always case-insensitive
 
 // qualifiedNamesEqual compares two QualifiedNames (table names) with quote-awareness.
 // Uses tableIdentsEqual since this is specifically for table name comparison.
 func qualifiedNamesEqual(a, b QualifiedName, defaultSchema string, mode GeneratorMode, legacyIgnoreQuotes bool, mysqlLowerCaseTableNames int) bool {
-	aSchema := a.Schema
-	bSchema := b.Schema
-	if aSchema.IsEmpty() && defaultSchema != "" {
-		aSchema = Ident{Name: defaultSchema, Quoted: false}
-	}
-	if bSchema.IsEmpty() && defaultSchema != "" {
-		bSchema = Ident{Name: defaultSchema, Quoted: false}
-	}
-	if !tableIdentsEqual(aSchema, bSchema, mode, legacyIgnoreQuotes, mysqlLowerCaseTableNames) {
-		return false
-	}
-	return tableIdentsEqual(a.Name, b.Name, mode, legacyIgnoreQuotes, mysqlLowerCaseTableNames)
+	_ = "STUB: not implemented"
+	return false
 }
 
 type DDL interface {
@@ -278,13 +235,12 @@ type IndexColumn struct {
 // For functional indexes or expressions, it returns the string representation.
 // FIXME: parser.String(ic.columnExpr) is not actually a correct column name.
 func (ic IndexColumn) ColumnName() string {
+	_ = "STUB: not implemented"
 	// Check if it's a simple column reference (ColName)
-	if colName, ok := ic.columnExpr.(*parser.ColName); ok {
-		return colName.Name.Name
-	}
-	// For expressions, return the full expression string
-	return parser.String(ic.columnExpr)
+	return ""
 }
+
+// For expressions, return the full expression string
 
 // IndexColumn.direction
 const (
@@ -524,108 +480,42 @@ type Schema struct {
 	schema    parser.Schema
 }
 
-func (c *CreateTable) Statement() string {
-	return c.statement
-}
+func (c *CreateTable) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (c *CreateIndex) Statement() string {
-	return c.statement
-}
+func (c *CreateIndex) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (a *AddIndex) Statement() string {
-	return a.statement
-}
+func (a *AddIndex) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (a *AddPrimaryKey) Statement() string {
-	return a.statement
-}
+func (a *AddPrimaryKey) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (a *AddForeignKey) Statement() string {
-	return a.statement
-}
+func (a *AddForeignKey) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (a *AddExclusion) Statement() string {
-	return a.statement
-}
+func (a *AddExclusion) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (a *AddPolicy) Statement() string {
-	return a.statement
-}
+func (a *AddPolicy) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (g *GrantPrivilege) Statement() string {
-	return g.statement
-}
+func (g *GrantPrivilege) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (r *RevokePrivilege) Statement() string {
-	return r.statement
-}
+func (r *RevokePrivilege) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (c *CreatePartitionOf) Statement() string {
-	return c.statement
-}
+func (c *CreatePartitionOf) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (v *View) Statement() string {
-	return v.statement
-}
+func (v *View) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (t *Trigger) Statement() string {
-	return t.statement
-}
+func (t *Trigger) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (f *Function) Statement() string {
-	return f.statement
-}
+func (f *Function) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (t *Type) Statement() string {
-	return t.statement
-}
+func (t *Type) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (d *Domain) Statement() string {
-	return d.statement
-}
+func (d *Domain) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (t *Comment) Statement() string {
-	return t.statement
-}
+func (t *Comment) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (t *Extension) Statement() string {
-	return t.statement
-}
+func (t *Extension) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (t *Schema) Statement() string {
-	return t.statement
-}
+func (t *Schema) Statement() string { _ = "STUB: not implemented"; return "" }
 
-func (t *Table) PrimaryKey() *Index {
-	for _, index := range t.indexes {
-		if index.primary {
-			return &index
-		}
-	}
+func (t *Table) PrimaryKey() *Index { _ = "STUB: not implemented"; return nil }
 
-	primaryColumns := []IndexColumn{}
-	for _, column := range t.columns {
-		if column.keyOption == ColumnKeyPrimary {
-			primaryColumns = append(primaryColumns, IndexColumn{
-				columnExpr: &parser.ColName{Name: parser.NewIdent(column.name.Name, column.name.Quoted)},
-			})
-		}
-	}
-
-	if len(primaryColumns) == 0 {
-		return nil
-	}
-
-	return &Index{
-		name:      Ident{Name: "PRIMARY", Quoted: false},
-		indexType: "primary key",
-		columns:   primaryColumns,
-		primary:   true,
-		unique:    true,
-		clustered: true,
-	}
-}
-
-func (keyOption ColumnKeyOption) isUnique() bool {
-	return keyOption == ColumnKeyUnique || keyOption == ColumnKeyUniqueKey
-}
+func (keyOption ColumnKeyOption) isUnique() bool { _ = "STUB: not implemented"; return false }
